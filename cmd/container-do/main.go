@@ -1,56 +1,58 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"os/exec"
 )
 
-const doFile = "ContainerDo.toml" // TODO: better name
+// TODO: better name?
+// TODO: make configurable, maybe via ENV?
+const doFile = "ContainerDo.toml"
+
+func handle(err error) {
+	if err != nil {
+		switch err.(type) {
+		case ConfigError:
+			_, _ = os.Stderr.WriteString(fmt.Sprintln(err.Error()))
+			os.Exit(2)
+		case *exec.ExitError:
+			os.Exit(err.(*exec.ExitError).ExitCode())
+		default:
+			panic(err)
+		}
+	}
+}
 
 func main() {
 	// TODO: capture --help, --init
+	// TODO: add command to stop/kill/"purge", i.e. stop/kill/remote container?
 
 	if len(os.Args[1:]) < 1 {
-		_, _ = os.Stderr.WriteString("Error: No command given\n")
+		_, _ = os.Stderr.WriteString(fmt.Sprintln("Error: No command given"))
 		os.Exit(1)
 	}
 
 	config, err := parseConfig(doFile)
-	if err != nil {
-		panic(err)
-	}
+	handle(err)
 
 	runner := makeRunner(config.Container.Runner)
 	containerExists, err := runner.DoesContainerExist(config.Container)
-	if err != nil {
-		panic(err)
-	}
+	handle(err)
 
 	if !containerExists {
 		err = runner.CreateContainer(config.Container)
-		if err != nil {
-			panic(err)
-		}
+		handle(err)
 	}
 
 	containerRunning, err := runner.IsContainerRunning(config.Container)
-	if err != nil {
-		panic(err)
-	}
+	handle(err)
 
 	if !containerRunning {
 		err = runner.RestartContainer(config.Container)
-		if err != nil {
-			panic(err)
-		}
+		handle(err)
 	}
 
 	err = runner.ExecuteCommand(config.Container, os.Args[1:])
-	if err != nil {
-		if exitError, ok := err.(*exec.ExitError); ok {
-			os.Exit(exitError.ExitCode())
-		} else {
-			panic(err)
-		}
-	}
+	handle(err)
 }

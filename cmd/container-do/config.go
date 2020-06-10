@@ -1,15 +1,18 @@
 package main
 
 import (
+	"fmt"
 	"github.com/pelletier/go-toml"
 	"io/ioutil"
+	. "path/filepath"
+	"strings"
 	"time"
 )
 
 type setup struct {
-	Privileged bool   `default:"false"`
-	Script     string `default:""`
-	Commands   string `default:""`
+	User       string `default:""`
+	ScriptFile string `default:""`
+	Commands   []string
 }
 
 type runner string
@@ -30,21 +33,21 @@ const (
 //    return err
 //}
 
-// TODO: add environment variables
 type container struct {
 	Runner runner `default:"docker"`
 	Image  string
-	Build  string
+	// Build  string // TODO: implement building image from Dockerfile?
 
 	Name        string
 	WorkDir     string
 	Environment map[string]string
 	Mounts      []string
 
-	Setup setup
-	//KeepAlive   myDuration //`toml:"keep_alive"`
-	RawKeepAlive string `toml:"keep_alive"`
+	//KeepAlive   myDuration
+	RawKeepAlive string `toml:"keep_alive" default:"15m"`
 	KeepStopped  bool   `default:"false"`
+
+	Setup setup
 }
 
 func (c *container) KeepAlive() time.Duration {
@@ -59,6 +62,14 @@ type Config struct {
 	Container container
 }
 
+type ConfigError struct {
+	Message string
+}
+
+func (e ConfigError) Error() string {
+	return fmt.Sprintf("Bad config file: %s", e.Message)
+}
+
 func parseConfig(fileName string) (Config, error) {
 	config := Config{}
 	bytes, err := ioutil.ReadFile(fileName)
@@ -67,5 +78,60 @@ func parseConfig(fileName string) (Config, error) {
 	}
 
 	err = toml.Unmarshal(bytes, &config)
+	if err != nil {
+		return config, err
+	}
+
+	// Validation & Defaults
+	if config.Container.Image == "" {
+		return config, ConfigError{Message: "No image given"}
+	}
+
+	// NB: Go's fake enums don't protect against wrong values!
+	switch r := config.Container.Runner; r {
+	case docker, podman:
+		break
+	default:
+		return config, ConfigError{Message: "Invalid container runner: " + string(r)}
+	}
+
+	if config.Container.Name == "" {
+		absolutePath, err := Abs(fileName)
+		if err != nil {
+			return config, err
+		}
+
+		config.Container.Name = strings.ToLower(Base(Dir(absolutePath))) + "-do"
+	}
+
+	if config.Container.WorkDir == "" {
+		// TODO implement default work_dir
+		// docker inspect --format="{{.ContainerConfig.WorkingDir}}"
+	}
+
+	if len(config.Container.Mounts) == 0 {
+		// TODO: implement default mount
+	}
+
 	return config, err
 }
+
+const ConfigFileTemplate = `
+[container]
+image = "<insert name/URL here>"
+
+# name = "basename(__DIR__)-do"
+# work_dir = "WORKDIR"
+
+# mounts = ["__DIR__:$work_dir"]
+# keep_alive = "15m"
+# keep_stopped = false
+
+[container.environment]
+# KEY = "value"
+
+[container.setup]
+# user        = ""
+# script_file = ""
+# commands    = []
+`
