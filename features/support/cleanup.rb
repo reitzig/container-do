@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'open3'
+
 World MockProject
 
 After do |scenario|
@@ -21,6 +23,6 @@ After do |scenario|
   Dir.chdir(@host_workdir) unless @host_workdir.nil?
   FileUtils.rm_rf(@temp_dir) unless @temp_dir.nil?
   @containers.each do |c|
-    `docker rm -f #{c} &`
+    _, _ = Open3.capture2e($docker, "rm", '-f', c)
   end
 end

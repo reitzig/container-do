@@ -63,10 +63,11 @@ jobs:
       - name: Fix lost permissions
         run: chmod +x container-do
 
-      - name: Run Cucumber
-        run: |
-          cucumber --tags 'not @pending and not @slow and not @timing'
-          cucumber --tags 'not @pending and not @slow and     @timing' --retry 3
+      - name: Run deterministic tests
+        run: cucumber --tags 'not @pending and not @slow and not @timing'
+
+      - name: Run flaky tests
+        run: cucumber --tags 'not @pending and not @slow and     @timing' --retry 3
 
   slow-tests:
     runs-on: ${{ matrix.os }}
@@ -96,7 +97,8 @@ jobs:
       - name: Fix lost permissions
         run: chmod +x container-do
 
-      - name: Run Cucumber
-        run: |
-          cucumber --tags 'not @pending and     @slow and not @timing'
-          cucumber --tags 'not @pending and     @slow and     @timing' --retry 3
+      - name: Run deterministic tests
+        run: cucumber --tags 'not @pending and     @slow and not @timing'
+
+      - name: Run flaky tests
+        run: cucumber --tags 'not @pending and     @slow and     @timing' --retry 3

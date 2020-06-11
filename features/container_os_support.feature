@@ -27,6 +27,3 @@ Feature: Support Many Linux Flavors
         Examples:
             | image                                       | distribution             |
             | alpine                                      | Alpine Linux             |
-
-
-#'date -d "$(date '+%F %T') 15 seconds" +%s > /keepalive; while [ $(cat /keepalive) \> $(date +%s) ]; do sleep 1; done'
