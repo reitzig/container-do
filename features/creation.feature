@@ -34,7 +34,8 @@ Feature: Container Creation
             work_dir = "/foo"
             """
         When container-do is called with `whoami`
-        Then a container is started with working directory /foo
+        Then a container is started with name test-app-do
+        And  the container has working directory /foo
 
     @pending
     Scenario: Set Up Volume Mounts
@@ -44,6 +45,7 @@ Feature: Container Creation
             mounts = ["foo1:/foo", "foo2:/bar"]
             """
         When container-do is called with `whoami`
+        Then a container is started with name test-app-do
         Then the container has a volume mount for foo1 at /foo
         And  the container has a volume mount for foo2 at /bar
 
@@ -55,5 +57,6 @@ Feature: Container Creation
             BAR = "FOO"
             """
         When container-do is called with `whoami`
+        Then a container is started with name test-app-do
         Then the container has an environment variable FOO with value "BAR"
         And  the container has an environment variable BAR with value "FOO"

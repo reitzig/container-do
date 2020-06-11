@@ -25,3 +25,11 @@ Given(/^temporary folders? ([^\s,]+(?:,\s*[^\s,]+))$/) do |folders|
          .map { |s| s.strip } \
          .each { |f| FileUtils.mkdir(f) }
 end
+
+Given(/^the project contains a file ([a-zA-Z0-9\-_.]+) with content$/) do |file, content|
+  File.write(file, content)
+end
+
+Given(/^([a-zA-Z0-9\-_.]+) is executable$/) do |file|
+  FileUtils.chmod("+x", file)
+end

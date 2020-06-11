@@ -1,3 +1,4 @@
+@slow
 Feature: Support Many Linux Flavors
     The tool should have as few dependencies on the container image as possible and
     thus work with a range of base distributions.

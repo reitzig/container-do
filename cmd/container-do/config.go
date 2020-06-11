@@ -45,7 +45,7 @@ type container struct {
 
 	//KeepAlive   myDuration
 	RawKeepAlive string `toml:"keep_alive" default:"15m"`
-	KeepStopped  bool   `default:"false"`
+	KeepStopped  bool   `toml:"keep_stopped" default:"false"`
 
 	Setup setup
 }

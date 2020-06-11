@@ -3,11 +3,12 @@
 require 'open3'
 
 Given(/^(\w+) is installed$/) do |command|
-  raise "#{command} not installed" unless system("which #{command}")
+  raise "#{command} not installed" unless system("which #{command} > /dev/null 2>&1")
 end
 
-Then(/^(?:the|a) container (?:has|is started with) name ([^\s]+)$/) do |name|
+Then(/^a container is started with name ([^\s]+)$/) do |name|
   expect(@new_containers.count).to eq(1)
+  container = @new_containers[0]
 
   out, status = Open3.capture2e("docker", "inspect", '--format={{.Id}}', name)
   unless status.success?
@@ -15,14 +16,12 @@ Then(/^(?:the|a) container (?:has|is started with) name ([^\s]+)$/) do |name|
     raise "Container not found"
   end
 
-  expect(out).to start_with(@new_containers[0])
+  expect(out).to start_with(container)
+  @container = container
 end
 
-And(/^(?:the|a) container is (?:started )?based on image ([^\s]+)$/) do |image|
-  expect(@new_containers.count).to eq(1)
-  container = @new_containers[0]
-
-  out, status = Open3.capture2e("docker", "inspect", '--format={{.Config.Image}}', container)
+Then(/^the container is based on image ([^\s]+)$/) do |image|
+  out, status = Open3.capture2e("docker", "inspect", '--format={{.Config.Image}}', @container)
   unless status.success?
     log(out)
     raise "Could not determine container image"
@@ -31,11 +30,8 @@ And(/^(?:the|a) container is (?:started )?based on image ([^\s]+)$/) do |image|
   expect(out.strip).to eq(image)
 end
 
-And(/^(?:the|a) container (?:has|is started with) working directory ([^\s]+)$/) do |work_dir|
-  expect(@new_containers.count).to eq(1)
-  container = @new_containers[0]
-
-  out, status = Open3.capture2e("docker", "inspect", '--format={{.Config.WorkingDir}}', container)
+Then(/^the container has working directory ([^\s]+)$/) do |work_dir|
+  out, status = Open3.capture2e("docker", "inspect", '--format={{.Config.WorkingDir}}', @container)
   unless status.success?
     log(out)
     raise "Could not determine container working directory"
@@ -43,7 +39,7 @@ And(/^(?:the|a) container (?:has|is started with) working directory ([^\s]+)$/) 
   out = '/' if out.strip == ""
   expect(out.strip).to eq(work_dir)
 
-  out, status = Open3.capture2e("docker", "exec", container, 'pwd')
+  out, status = Open3.capture2e("docker", "exec", @container, 'pwd')
   unless status.success?
     log(out)
     raise "Could not run command on container"
@@ -51,12 +47,10 @@ And(/^(?:the|a) container (?:has|is started with) working directory ([^\s]+)$/) 
   expect(out.strip).to eq(work_dir)
 end
 
-And(/^(?:the|a) container (?:has|is started with) a volume mount for ([^\s]+) at ([^\s]+)$/) do |host_dir, container_dir|
+Then(/^the container has a volume mount for ([^\s]+) at ([^\s]+)$/) do |host_dir, container_dir|
   pending # TODO
-  expect(@new_containers.count).to eq(1)
-  container = @new_containers[0]
 
-  out, status = Open3.capture2e("docker", "inspect", '--format={{json .HostConfig.Binds}}', container)
+  out, status = Open3.capture2e("docker", "inspect", '--format={{json .HostConfig.Binds}}', @container)
   unless status.success?
     log(out)
     raise "Could not determine container mounts"
@@ -66,11 +60,8 @@ And(/^(?:the|a) container (?:has|is started with) a volume mount for ([^\s]+) at
   expect(out.strip).to match(%r{"#{host_dir}:#{container_dir}"})
 end
 
-And(/^(?:the|a) container (?:has|is started with) an environment variable ([A-Z_]+) with value "([^"]*)"$/) do |key, value|
-  expect(@new_containers.count).to eq(1)
-  container = @new_containers[0]
-
-  out, status = Open3.capture2e("docker", "inspect", '--format={{json .Config.Env}}', container)
+Then(/^the container has an environment variable ([A-Z_]+) with value "([^"]*)"$/) do |key, value|
+  out, status = Open3.capture2e("docker", "inspect", '--format={{json .Config.Env}}', @container)
   unless status.success?
     log(out)
     raise "Could not determine container environment variables"
@@ -79,14 +70,41 @@ And(/^(?:the|a) container (?:has|is started with) an environment variable ([A-Z_
   expect(out.strip).to match(/"#{key}=#{value}"/)
 end
 
-And('the command exits with status {int}') do |status|
+Then('the command exits with status {int}') do |status|
   expect(@run_status).to eq(status)
 end
 
-And("(the )command/its output is {string}") do |output|
+Then("(the )command/its output is {string}") do |output|
   expect(@run_output).to eq(output)
 end
 
-And("(the )command/its output contains {string}") do |output|
+Then("(the )command/its output contains {string}") do |output|
   expect(@run_output).to match(output)
+end
+
+Then("the container is( still) running") do
+  out, status = Open3.capture2e("docker", "inspect", '--format={{.State.Running}}', @container)
+  unless status.success?
+    log(out)
+    raise "Could not determine container state"
+  end
+
+  expect(out.strip).to eq("true")
+end
+
+Then("the container is not running( anymore)") do
+  out, status = Open3.capture2e("docker", "inspect", '--format={{.State.Running}}', @container)
+  if status.success?
+    expect(out.strip).to eq("false")
+  end
+end
+
+Then("the container is gone/absent") do
+  _, status = Open3.capture2e("docker", "inspect", '--format={{.State.Running}}', @container)
+  expect(status.success?).to eq(false)
+end
+
+Then("the container is( still) there/present") do
+  _, status = Open3.capture2e("docker", "inspect", '--format={{.State.Running}}', @container)
+  expect(status.success?).to eq(true)
 end

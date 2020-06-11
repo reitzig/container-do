@@ -20,7 +20,7 @@ After do |scenario|
 
   Dir.chdir(@host_workdir) unless @host_workdir.nil?
   FileUtils.rm_rf(@temp_dir) unless @temp_dir.nil?
-  @new_containers.each do |c|
+  @containers.each do |c|
     `docker rm -f #{c} &`
   end
 end
