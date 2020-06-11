@@ -43,7 +43,7 @@ func (d DockerRunner) CreateContainer(c container) error {
 		args = append(args, "-e", key+"="+value)
 	}
 
-	args = append(args, c.Image, "bash", "-c", containerRunScript(c))
+	args = append(args, c.Image, "sh", "-c", containerRunScript(c))
 
 	_, err := exec.Command("docker", args...).Output()
 	// TODO: avoid mishaps by storing container ID and checking for conflicts?
@@ -70,7 +70,7 @@ func (d DockerRunner) RestartContainer(c container) error {
 
 func (d DockerRunner) setKeepAliveToken(c container, value string) error {
 	out, err := exec.Command(
-		"docker", "exec", c.Name, "bash", "-c", setKeepAliveTokenScript(value)).Output()
+		"docker", "exec", c.Name, "sh", "-c", setKeepAliveTokenScript(value)).Output()
 
 	if err != nil {
 		// TODO proper logging
@@ -85,7 +85,7 @@ func (d DockerRunner) ExecuteCommand(c container, commandAndParameters []string)
 	_ = d.setKeepAliveToken(c, keepAliveIndefinitely)
 
 	// TODO: add -w if necessary
-	args := append([]string{"exec", "-it", c.Name}, commandAndParameters...)
+	args := append([]string{"exec", "-i", c.Name}, commandAndParameters...)
 	cmd := exec.Command("docker", args...)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout

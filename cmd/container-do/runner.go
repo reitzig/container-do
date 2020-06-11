@@ -36,10 +36,10 @@ func containerRunScript(c container) string {
 	// NB: - Can not hard-code the first stop-time because otherwise `RestartContainer` wouldn't work!
 	//     - `date +%s` outputs UNIX timestamps -- hopefully. Might break for non-standard implementations?
 	//     - That other format seems to be needed in order for the addition to work; got that off Stack Overflow.
-	//     - We use bash string comparison, which does the right thing for UNIX timestamps
+	//     - We use sh string comparison, which does the right thing for UNIX timestamps
 	//       In particular, `keepAliveIndefinitely` is "larger" than any timestamp!
 	return "date -d \"$(date '+%F %T') " + keepAliveString + " seconds\" +%s > " + keepAliveFile + "; " +
-		"while [[ $(cat " + keepAliveFile + ") > $(date +%s) ]]; do sleep 1; done"
+		"while [ $(cat " + keepAliveFile + ") \\> $(date +%s) ]; do sleep 1; done"
 }
 
 func setKeepAliveTokenScript(token string) string {

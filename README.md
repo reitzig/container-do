@@ -1,6 +1,6 @@
 # container-do
 
-Run project-level CLI tools in containers instead of installing them.
+Run project-level CLI tools in (Linux) containers instead of installing them.
 
 ### Premise
 
@@ -10,7 +10,7 @@ Run project-level CLI tools in containers instead of installing them.
     nothing else.
  2. You need a certain suite of tools (at certain versions)
     to perform this task.
- 3. A container image exists for this suite. 
+ 3. A compatible container image exists for this suite. 
 
 
 ## Install
@@ -22,7 +22,7 @@ Run project-level CLI tools in containers instead of installing them.
 _Prerequisites:_
 
  - Docker installed and user can run commands.
- - Container has `bash`.
+ - Container has `sh`.
 
 There are only two special commands:
 
@@ -52,6 +52,13 @@ image = "my-image"
 Alternatively, run `container-do --init` to get a full template.
 
 <!-- TODO: document options and defaults -->
+
+## FAQ
+
+ - _Do you type `container-do` every time?_
+ 
+   Haha, no. Even considering shell completion, that's too much something I'll 
+   use as often. On the CLI, an alias like `cdo` or `$` does wonders.
 
 
 ## Mini ARD
