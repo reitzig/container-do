@@ -1,0 +1,102 @@
+name: Tests
+
+on:
+  push:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os:
+          - 'ubuntu-18.04'
+          - 'windows-latest'
+          #- 'macos-latest' # Nope: https://github.community/t/why-is-docker-not-installed-on-macos/17017/6
+    steps:
+    - uses: actions/checkout@v2
+
+    - uses: actions/setup-go@v2
+      with:
+        go-version: '^1.14.2'
+
+    - name: Unit Tests
+      run: go test ./...
+
+    - name: Build Binary
+      run: go build ./...
+
+    - uses: actions/upload-artifact@v2
+      with:
+        name: "container-do-${{ matrix.os }}"
+        path: container-do*
+
+  fast-tests:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os:
+          - 'ubuntu-18.04'
+          - 'windows-latest'
+          #- 'macos-latest' # Nope: https://github.community/t/why-is-docker-not-installed-on-macos/17017/6
+    needs: build
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 2.7
+
+      - name: Install Test Dependencies
+        run: |
+          gem install bundler
+          bundle install
+
+      - uses: actions/download-artifact@v2
+        with:
+          name: "container-do-${{ matrix.os }}"
+
+      - name: Fix lost permissions
+        run: chmod +x container-do
+
+      - name: Run Cucumber
+        run: |
+          cucumber --tags 'not @pending and not @slow and not @timing'
+          cucumber --tags 'not @pending and not @slow and     @timing' --retry 3
+
+  slow-tests:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os:
+          - 'ubuntu-18.04'
+          - 'windows-latest'
+          #- 'macos-latest' # Nope: https://github.community/t/why-is-docker-not-installed-on-macos/17017/6
+    needs: build
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 2.7
+
+      - name: Install Test Dependencies
+        run: |
+          gem install bundler
+          bundle install
+
+      - uses: actions/download-artifact@v2
+        with:
+          name: "container-do-${{ matrix.os }}"
+
+      - name: Fix lost permissions
+        run: chmod +x container-do
+
+      - name: Run Cucumber
+        run: |
+          cucumber --tags 'not @pending and     @slow and not @timing'
+          cucumber --tags 'not @pending and     @slow and     @timing' --retry 3
