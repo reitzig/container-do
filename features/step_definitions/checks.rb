@@ -52,6 +52,7 @@ And(/^(?:the|a) container (?:has|is started with) working directory ([^\s]+)$/) 
 end
 
 And(/^(?:the|a) container (?:has|is started with) a volume mount for ([^\s]+) at ([^\s]+)$/) do |host_dir, container_dir|
+  pending # TODO
   expect(@new_containers.count).to eq(1)
   container = @new_containers[0]
 
@@ -78,7 +79,14 @@ And(/^(?:the|a) container (?:has|is started with) an environment variable ([A-Z_
   expect(out.strip).to match(/"#{key}=#{value}"/)
 end
 
-And(/^the command exits with status (\d+) and output "([^"]*)"$/) do |status, output|
-  expect(@run_status).to eq(int(status))
+And('the command exits with status {int}') do |status|
+  expect(@run_status).to eq(status)
+end
+
+And("(the )command/its output is {string}") do |output|
   expect(@run_output).to eq(output)
+end
+
+And("(the )command/its output contains {string}") do |output|
+  expect(@run_output).to match(output)
 end
