@@ -10,7 +10,7 @@ import (
 type DockerRunner struct{}
 
 func (d DockerRunner) DoesContainerExist(c container) (bool, error) {
-	out, err := exec.Command("docker", "ps", "--all", "--format", "{{.Names}}").Output()
+	out, err := exec.Command(d.RunnerExecutable(), "ps", "--all", "--format", "{{.Names}}").Output()
 	if err != nil {
 		return false, err
 	}
@@ -20,7 +20,7 @@ func (d DockerRunner) DoesContainerExist(c container) (bool, error) {
 }
 
 func (d DockerRunner) IsContainerRunning(c container) (bool, error) {
-	out, err := exec.Command("docker", "inspect", "--format", "{{.State.Running}}", c.Name).Output()
+	out, err := exec.Command(d.RunnerExecutable(), "inspect", "--format", "{{.State.Running}}", c.Name).Output()
 	if err != nil {
 		return false, err
 	}
@@ -45,7 +45,7 @@ func (d DockerRunner) CreateContainer(c container) error {
 
 	args = append(args, c.Image, "sh", "-c", containerRunScript(c))
 
-	_, err := exec.Command("docker", args...).Output()
+	_, err := exec.Command(d.RunnerExecutable(), args...).Output()
 	// TODO: avoid mishaps by storing container ID and checking for conflicts?
 	//       --> if we do that, default container name can be dropped (let runner do its thing)
 	if err != nil {
@@ -64,13 +64,13 @@ func (d DockerRunner) CreateContainer(c container) error {
 }
 
 func (d DockerRunner) RestartContainer(c container) error {
-	_, err := exec.Command("docker", "start", c.Name).Output()
+	_, err := exec.Command(d.RunnerExecutable(), "start", c.Name).Output()
 	return err
 }
 
 func (d DockerRunner) setKeepAliveToken(c container, value string) error {
-	out, err := exec.Command(
-		"docker", "exec", c.Name, "sh", "-c", setKeepAliveTokenScript(value)).Output()
+	out, err := exec.Command(d.RunnerExecutable(),
+		"exec", c.Name, "sh", "-c", setKeepAliveTokenScript(value)).Output()
 
 	if err != nil {
 		// TODO proper logging
@@ -86,7 +86,7 @@ func (d DockerRunner) ExecuteCommand(c container, commandAndParameters []string)
 
 	// TODO: add -w if necessary
 	args := append([]string{"exec", "-i", c.Name}, commandAndParameters...)
-	cmd := exec.Command("docker", args...)
+	cmd := exec.Command(d.RunnerExecutable(), args...)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr

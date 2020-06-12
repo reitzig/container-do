@@ -34,8 +34,7 @@ const (
 //}
 
 type container struct {
-	Runner runner `default:"docker"`
-	Image  string
+	Image string
 	// Build  string // TODO: implement building image from Dockerfile?
 
 	Name        string
@@ -59,6 +58,8 @@ func (c *container) KeepAlive() time.Duration {
 }
 
 type Config struct {
+	Runner runner `default:"docker"`
+	// TODO: allow setting executable explicitly?
 	Container container
 }
 
@@ -88,7 +89,7 @@ func parseConfig(fileName string) (Config, error) {
 	}
 
 	// NB: Go's fake enums don't protect against wrong values!
-	switch r := config.Container.Runner; r {
+	switch r := config.Runner; r {
 	case docker, podman:
 		break
 	default:

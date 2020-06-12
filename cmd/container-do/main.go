@@ -36,7 +36,7 @@ func main() {
 	config, err := parseConfig(doFile)
 	handle(err)
 
-	runner := makeRunner(config.Container.Runner)
+	runner := makeRunner(config.Runner)
 	containerExists, err := runner.DoesContainerExist(config.Container)
 	handle(err)
 

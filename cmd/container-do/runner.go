@@ -6,6 +6,8 @@ import (
 )
 
 type runnerExec interface {
+	RunnerExecutable() string
+
 	DoesContainerExist(c container) (bool, error)
 	IsContainerRunning(c container) (bool, error)
 	CreateContainer(c container) error

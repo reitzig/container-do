@@ -68,6 +68,8 @@ Alternatively, run `container-do --init` to get a full template.
  - Why containers?  
    --> While this is not about running services, it seemed a prudent way
    to isolate versioned tooling from the host system without too much overhead.
+   Also, the approach eliminates the need for tools specific to a certain ecosystem
+   such as venv, rvm, etc.
  - Why Go?  
    --> Using this a learning experience. Efficient binaries seem prudent here.
    Also, Go seems be prevalent in the OCI space.
@@ -78,3 +80,12 @@ Alternatively, run `container-do --init` to get a full template.
  - Why not use docker/client resp. libpod as libraries?  
    --> would mean higher maintenance debt (security patches etc)
    (quote libpod doc)
+
+
+## Acknowledgements
+
+Parts of this project were created during 
+    [20% time](https://en.wikipedia.org/wiki/20%25_Project) 
+graciously provided by 
+    [codecentric](https://codecentric.de).
+Thank you!
