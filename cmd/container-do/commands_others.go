@@ -3,5 +3,5 @@
 package main
 
 func (d DockerRunner) RunnerExecutable() string {
-	return "docker"
+    return "docker"
 }
