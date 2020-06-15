@@ -4,6 +4,7 @@ import (
     "bufio"
     "bytes"
     "fmt"
+    "go.uber.org/zap"
     "strings"
     "time"
 )
@@ -17,6 +18,8 @@ type runnerExec interface {
     IsContainerRunning(c *container) (bool, error)
     CreateContainer(c *container) error
     RestartContainer(c *container) error
+
+    // Attach and block!
     ExecuteCommand(c *container, commandAndArguments []string) error
 }
 
@@ -58,14 +61,18 @@ func extractOsFlavorFromReleaseFile(out []byte) (string, error) {
     }
 
     osFlavor := osMap["ID"]
+    zap.L().Sugar().Debugf("Container OS ID: '%s'", osFlavor)
     if osNames, ok := osMap["ID_LIKE"]; ok {
+        zap.L().Sugar().Debugf("Container OS ID_LIKE: '%s'", osNames)
         if osName, match := firstMatchInString(osNames, OsFlavors); match {
             osFlavor = osName
         }
     }
 
     if !stringInSlice(osFlavor, OsFlavors) {
-        // TODO: log warning
+        zap.L().Sugar().Warnf("Detected container OS flavor '%s' is not supported.", osFlavor)
+    } else {
+        zap.L().Sugar().Debugf("Detected container OS flavor '%s'.", osFlavor)
     }
 
     return osFlavor, nil
@@ -90,13 +97,17 @@ func containerRunScript(c container) string {
     case "busybox", "alpine":
         dateCommand = "date -d@\"$(( $(date +%s)+" + keepAliveString + "))\" +%s"
     case "":
-        panic("BUG: osFlavor not set")
+        zap.L().Panic("BUG: osFlavor not set")
     default:
-        // TODO: log warning
+        zap.L().Sugar().Warnf("OS Flavor '%s' not supported; assuming GNU compatibility!", c.osFlavor)
     }
+    zap.L().Sugar().Debugf("Command to create first stop-time in container: `%s`", dateCommand)
 
-    return dateCommand + " > " + keepAliveFile + "; " +
+    runCommand := dateCommand + " > " + keepAliveFile + "; " +
         "while [ $(cat " + keepAliveFile + ") \\> $(date +%s) ]; do sleep 1; done"
+    zap.L().Sugar().Debugf("Command to start container with: `%s`", runCommand)
+
+    return runCommand
 }
 
 func setKeepAliveTokenScript(token string) string {

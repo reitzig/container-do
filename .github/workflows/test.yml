@@ -25,10 +25,12 @@ jobs:
         go-version: '^1.14.2'
 
     - name: Unit Tests
-      run: go test ./...
+      run: go test -tags test ./...
 
-    - name: Build Binary
-      run: go build ./...
+    - name: Build Binaries
+      run: |
+        go build -tags test -o container-do-debug ./...
+        go build -ldflags "-s -w" -o container-do ./...
 
     - uses: actions/upload-artifact@v2
       with:
@@ -61,7 +63,9 @@ jobs:
           name: "container-do-${{ matrix.os }}"
 
       - name: Fix lost permissions
-        run: chmod +x container-do
+        run: |
+          mv container-do-debug container-do
+          chmod +x container-do
 
       - name: Run deterministic tests
         run: cucumber --tags 'not @pending and not @slow and not @timing'
@@ -95,7 +99,9 @@ jobs:
           name: "container-do-${{ matrix.os }}"
 
       - name: Fix lost permissions
-        run: chmod +x container-do
+        run: |
+          mv container-do-debug container-do
+          chmod +x container-do
 
       - name: Run deterministic tests
         run: cucumber --tags 'not @pending and     @slow and not @timing'

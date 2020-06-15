@@ -3,6 +3,7 @@ package main
 import (
     "fmt"
     "github.com/pelletier/go-toml"
+    "go.uber.org/zap"
     "io/ioutil"
     . "path/filepath"
     "strings"
@@ -125,6 +126,7 @@ func parseConfig(fileName string) (Config, error) {
         // TODO: implement default mount
     }
 
+    zap.L().Sugar().Debugf("Parsed config: %+v", config)
     return config, err
 }
 

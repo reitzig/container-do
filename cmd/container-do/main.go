@@ -4,6 +4,7 @@ import (
     "fmt"
     "os"
     "os/exec"
+    "go.uber.org/zap"
 )
 
 // TODO: better name?
@@ -13,10 +14,11 @@ const doFile = "ContainerDo.toml"
 func handle(err error) {
     if err != nil {
         switch err.(type) {
-        case ConfigError:
+        case UsageError, ConfigError:
             _, _ = os.Stderr.WriteString(fmt.Sprintln(err.Error()))
-            os.Exit(2)
+            os.Exit(1)
         case *exec.ExitError:
+            _, _ = os.Stderr.WriteString(fmt.Sprintln(err.Error()))
             os.Exit(err.(*exec.ExitError).ExitCode())
         default:
             panic(err)
@@ -24,13 +26,30 @@ func handle(err error) {
     }
 }
 
+// TODO: replace with CLI parser and its error
+type UsageError struct {
+    Message string
+}
+
+func (e UsageError) Error() string {
+    return fmt.Sprintf("Wrong usage: %s", e.Message)
+}
+
 func main() {
     // TODO: capture --help, --init
     // TODO: add command to stop/kill/"purge", i.e. stop/kill/remote container?
 
+    // TODO: Add CLI or ENV flag to turn on debug logging?
+    logger, err := makeLogger()
+    if err != nil {
+        handle(err)
+    }
+    defer logger.Sync()
+    undo := zap.ReplaceGlobals(logger)
+    defer undo()
+
     if len(os.Args[1:]) < 1 {
-        _, _ = os.Stderr.WriteString(fmt.Sprintln("Error: No command given"))
-        os.Exit(1)
+        handle(UsageError{Message: "No command given"})
     }
 
     config, err := parseConfig(doFile)
