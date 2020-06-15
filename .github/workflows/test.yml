@@ -15,7 +15,7 @@ jobs:
       matrix:
         os:
           - 'ubuntu-18.04'
-          - 'windows-latest'
+          #- 'windows-latest'
           #- 'macos-latest' # Nope: https://github.community/t/why-is-docker-not-installed-on-macos/17017/6
     steps:
     - uses: actions/checkout@v2
@@ -41,7 +41,7 @@ jobs:
       matrix:
         os:
           - 'ubuntu-18.04'
-          - 'windows-latest'
+          #- 'windows-latest'
           #- 'macos-latest' # Nope: https://github.community/t/why-is-docker-not-installed-on-macos/17017/6
     needs: build
     steps:
@@ -75,7 +75,7 @@ jobs:
       matrix:
         os:
           - 'ubuntu-18.04'
-          - 'windows-latest'
+          #- 'windows-latest'
           #- 'macos-latest' # Nope: https://github.community/t/why-is-docker-not-installed-on-macos/17017/6
     needs: build
     steps:
