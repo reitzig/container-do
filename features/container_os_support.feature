@@ -22,8 +22,4 @@ Feature: Support Many Linux Flavors
             | debian:buster-slim                          | Debian GNU/Linux         |
             | registry.access.redhat.com/ubi8/ubi-minimal | Red Hat Enterprise Linux |
             | ubuntu                                      | Ubuntu                   |
-
-        @pending
-        Examples:
-            | image                                       | distribution             |
             | alpine                                      | Alpine Linux             |

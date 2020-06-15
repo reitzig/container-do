@@ -35,24 +35,24 @@ func main() {
 
 	config, err := parseConfig(doFile)
 	handle(err)
-
 	runner := makeRunner(config.Runner)
-	containerExists, err := runner.DoesContainerExist(config.Container)
+
+	containerExists, err := runner.DoesContainerExist(&config.Container)
 	handle(err)
 
 	if !containerExists {
-		err = runner.CreateContainer(config.Container)
+		err = runner.CreateContainer(&config.Container)
 		handle(err)
 	}
 
-	containerRunning, err := runner.IsContainerRunning(config.Container)
+	containerRunning, err := runner.IsContainerRunning(&config.Container)
 	handle(err)
 
 	if !containerRunning {
-		err = runner.RestartContainer(config.Container)
+		err = runner.RestartContainer(&config.Container)
 		handle(err)
 	}
 
-	err = runner.ExecuteCommand(config.Container, os.Args[1:])
+	err = runner.ExecuteCommand(&config.Container, os.Args[1:])
 	handle(err)
 }

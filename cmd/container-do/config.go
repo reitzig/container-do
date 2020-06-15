@@ -22,6 +22,15 @@ const (
 	podman runner = "podman"
 )
 
+// These are the known and explicitly supported container OS flavors
+var OsFlavors = []string{
+	"debian",
+	"fedora",
+	"alpine",
+	"gnu/linux", // for users: assert GNU tools
+	"busybox",   // for users: assert BusyBox tools
+}
+
 // TODO: Doesn't work?
 //type myDuration struct {
 //    Value duration.Duration
@@ -36,6 +45,8 @@ const (
 type container struct {
 	Image string
 	// Build  string // TODO: implement building image from Dockerfile?
+	RawOsFlavor string `toml:"os_flavor" default:""`
+	osFlavor    string // lazily populated by runnerExec.DetermineOsFlavor
 
 	Name        string
 	WorkDir     string
@@ -120,6 +131,7 @@ func parseConfig(fileName string) (Config, error) {
 const ConfigFileTemplate = `
 [container]
 image = "<insert name/URL here>"
+# os_flavor = ""
 
 # name = "basename(__DIR__)-do"
 # work_dir = "WORKDIR"

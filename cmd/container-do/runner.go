@@ -1,18 +1,23 @@
 package main
 
 import (
+	"bufio"
+	"bytes"
 	"fmt"
+	"strings"
 	"time"
 )
 
 type runnerExec interface {
 	RunnerExecutable() string
 
-	DoesContainerExist(c container) (bool, error)
-	IsContainerRunning(c container) (bool, error)
-	CreateContainer(c container) error
-	RestartContainer(c container) error
-	ExecuteCommand(c container, commandAndArguments []string) error
+	DetermineOsFlavor(c *container) error
+
+	DoesContainerExist(c *container) (bool, error)
+	IsContainerRunning(c *container) (bool, error)
+	CreateContainer(c *container) error
+	RestartContainer(c *container) error
+	ExecuteCommand(c *container, commandAndArguments []string) error
 }
 
 /*
@@ -29,6 +34,43 @@ type runnerExec interface {
 const keepAliveFile = "/keepalive" // TODO: make configurable?
 const keepAliveIndefinitely = "running"
 
+func parseOsReleaseFile(data []byte) (map[string]string, error) {
+	stringMap := map[string]string{}
+
+	scanner := bufio.NewScanner(bytes.NewReader(data))
+	scanner.Split(bufio.ScanLines)
+	for scanner.Scan() {
+		line := strings.TrimSpace(scanner.Text())
+		parts := strings.SplitN(line, "=", 2)
+
+		if len(parts) == 2 {
+			stringMap[parts[0]] = strings.Trim(parts[1], "'\"")
+		}
+	}
+
+	return stringMap, nil
+}
+
+func extractOsFlavorFromReleaseFile(out []byte) (string, error) {
+	osMap, err := parseOsReleaseFile(out)
+	if err != nil {
+		return "", err
+	}
+
+	osFlavor := osMap["ID"]
+	if osNames, ok := osMap["ID_LIKE"]; ok {
+		if osName, match := firstMatchInString(osNames, OsFlavors); match {
+			osFlavor = osName
+		}
+	}
+
+	if !stringInSlice(osFlavor, OsFlavors) {
+		// TODO: log warning
+	}
+
+	return osFlavor, nil
+}
+
 func nextContainerStopTime(c container) string {
 	return fmt.Sprintf("%d", time.Now().Add(c.KeepAlive()).Unix())
 }
@@ -40,7 +82,20 @@ func containerRunScript(c container) string {
 	//     - That other format seems to be needed in order for the addition to work; got that off Stack Overflow.
 	//     - We use sh string comparison, which does the right thing for UNIX timestamps
 	//       In particular, `keepAliveIndefinitely` is "larger" than any timestamp!
-	return "date -d \"$(date '+%F %T') " + keepAliveString + " seconds\" +%s > " + keepAliveFile + "; " +
+
+	dateCommand := "date -d '" + keepAliveString + "sec' +%s"
+	switch c.osFlavor {
+	case "gnu/linux", "debian", "fedora":
+		break // default
+	case "busybox", "alpine":
+		dateCommand = "date -d@\"$(( $(date +%s)+" + keepAliveString + "))\" +%s"
+	case "":
+		panic("BUG: osFlavor not set")
+	default:
+		// TODO: log warning
+	}
+
+	return dateCommand + " > " + keepAliveFile + "; " +
 		"while [ $(cat " + keepAliveFile + ") \\> $(date +%s) ]; do sleep 1; done"
 }
 
