@@ -13,10 +13,5 @@ func makeLogger() (*zap.Logger, error) {
     prodConfig.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
     prodConfig.EncoderConfig.EncodeDuration= zapcore.StringDurationEncoder
 
-    logger, err := prodConfig.Build()
-    if err != nil {
-        return nil, err
-    }
-
-    return logger, nil
+    return prodConfig.Build()
 }

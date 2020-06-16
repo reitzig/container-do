@@ -75,6 +75,27 @@ type Config struct {
     Container container
 }
 
+const ConfigFileTemplate = `
+[container]
+image = "<insert name/URL here>"
+# os_flavor = ""
+
+# name = "basename(__DIR__)-do"
+# work_dir = "WORKDIR"
+
+# mounts = ["__DIR__:$work_dir"]
+# keep_alive = "15m"
+# keep_stopped = false
+
+[container.environment]
+# KEY = "value"
+
+[container.setup]
+# user        = ""
+# script_file = ""
+# commands    = []
+`
+
 type ConfigError struct {
     Message string
 }
@@ -85,6 +106,11 @@ func (e ConfigError) Error() string {
 
 func parseConfig(fileName string) (Config, error) {
     config := Config{}
+
+    if ! fileExists(doFile) {
+        return config, UsageError{Message: fmt.Sprintf("Config file %s missing", doFile)}
+    }
+
     bytes, err := ioutil.ReadFile(fileName)
     if err != nil {
         return config, err
@@ -129,24 +155,3 @@ func parseConfig(fileName string) (Config, error) {
     zap.L().Sugar().Debugf("Parsed config: %+v", config)
     return config, err
 }
-
-const ConfigFileTemplate = `
-[container]
-image = "<insert name/URL here>"
-# os_flavor = ""
-
-# name = "basename(__DIR__)-do"
-# work_dir = "WORKDIR"
-
-# mounts = ["__DIR__:$work_dir"]
-# keep_alive = "15m"
-# keep_stopped = false
-
-[container.environment]
-# KEY = "value"
-
-[container.setup]
-# user        = ""
-# script_file = ""
-# commands    = []
-`

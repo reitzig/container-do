@@ -108,3 +108,26 @@ Then("the container is( still) there/present") do
   _, status = Open3.capture2e($docker, "inspect", '--format={{.State.Running}}', @container)
   expect(status.success?).to eq(true)
 end
+
+
+And(/^file ([^\s]+) (?:still )?contains$/) do |file_name, expected_content|
+  actual_content = File.read(file_name)
+  expect(actual_content.strip).to eq(expected_content.strip)
+end
+
+
+Then(/^file ContainerDo\.toml is a valid config file$/) do
+  # We don't _actually_ have an easy way to parse the file by itself, so we
+  # force the app to do it an confirm we're _not_ seeing a config error.
+  # Instead, we expect it to run all the way up until it discovers that the
+  # placeholder is, in fact, not a valid Docker image.
+
+  output, status = Open3.capture2e("#{@host_workdir}/#{$container_do}", "cat", "/neverthere")
+  expect(status.success?).to be(false)
+  expect(status.exitstatus).to be > 1
+  expect(output).to match("Unable to find image") | match("docker: invalid reference format")
+end
+
+And(/^no container was started$/) do
+  expect(@containers).to be_empty
+end

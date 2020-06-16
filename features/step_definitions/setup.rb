@@ -3,16 +3,24 @@
 require 'fileutils'
 require 'tmpdir'
 
-Given(/^config file for project ([^\s]+)$/) do |project_name, content|
-  @host_workdir = Dir.pwd
+def init_project_dir(project_name)
   @project_name = project_name
   @temp_dir = Dir.mktmpdir("container-do-test-")
   @project_dir = "#{@temp_dir}/#{@project_name}"
-  @config_file = "ContainerDo.toml"
 
   FileUtils.mkdir(@project_dir) unless File.exist?(@project_dir)
   Dir.chdir(@project_dir)
   log("Testing in: #{@project_dir}")
+end
+
+Given(/^an empty project ([^\s]+)$/) do |project_name|
+  init_project_dir(project_name)
+end
+
+Given(/^config file for project ([^\s]+)$/) do |project_name, content|
+  init_project_dir(project_name)
+
+  @config_file = "ContainerDo.toml"
   File.write(@config_file, content)
 end
 

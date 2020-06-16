@@ -31,3 +31,7 @@ module MockProject
 end
 
 World MockProject
+
+Before do
+    @host_workdir = Dir.pwd
+end

@@ -1,6 +1,7 @@
 package main
 
 import (
+    "os"
     "strings"
 )
 
@@ -21,4 +22,9 @@ func firstMatchInString(value string, candidates []string) (string, bool) {
     }
 
     return "", false
+}
+
+func fileExists(filename string) bool {
+    _, err := os.Stat(filename)
+    return ! os.IsNotExist(err)
 }

@@ -2,14 +2,28 @@ package main
 
 import (
     "fmt"
+    "io/ioutil"
     "os"
     "os/exec"
+
     "go.uber.org/zap"
 )
 
 // TODO: better name?
 // TODO: make configurable, maybe via ENV?
 const doFile = "ContainerDo.toml"
+
+const usageMessage = `Usage:  container-do --help
+            Print this message
+
+        container-do --init
+            Create a template configuration file %s,
+            unless that file already exists.
+
+        container-do COMMAND [ARGUMENT...]
+            Run the given command in a container as
+            specified in %s.
+`
 
 func handle(err error) {
     if err != nil {
@@ -36,7 +50,6 @@ func (e UsageError) Error() string {
 }
 
 func main() {
-    // TODO: capture --help, --init
     // TODO: add command to stop/kill/"purge", i.e. stop/kill/remote container?
 
     // TODO: Add CLI or ENV flag to turn on debug logging?
@@ -50,6 +63,19 @@ func main() {
 
     if len(os.Args[1:]) < 1 {
         handle(UsageError{Message: "No command given"})
+    }
+
+    switch os.Args[1] {
+        case "--help":
+            fmt.Printf(usageMessage, doFile, doFile)
+            os.Exit(0)
+        case "--init":
+            if fileExists(doFile) {
+                handle(UsageError{Message: fmt.Sprintf("Config file '%s' already exists.", doFile)})
+            } else {
+                handle(ioutil.WriteFile(doFile, []byte(ConfigFileTemplate), 0o644))
+                zap.L().Sugar().Debug("Created new %s from template.", doFile)
+            }
     }
 
     config, err := parseConfig(doFile)
