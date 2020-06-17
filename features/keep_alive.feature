@@ -9,7 +9,7 @@ Feature: Keep Container Alive
             """
             [container]
             image = "ubuntu"
-            keep_alive = "2s"
+            keep_alive = "3s"
 
             # Override defaults that would impact timing:
             mounts = []
@@ -18,7 +18,7 @@ Feature: Keep Container Alive
     Scenario: Keep Container Alive for Configured Interval
         When container-do is called with `whoami`
         Then a container is started with name test-app-do
-        When we wait for 0.5s
+        When we wait for 2s
         Then the container is still running
         When we wait for another 2s
         Then the container is not running anymore
@@ -31,7 +31,7 @@ Feature: Keep Container Alive
             """
         When container-do is called with `whoami`
         Then a container is started with name test-app-do
-        When we wait for 2.5s
+        When we wait for 4s
         Then the container is not running anymore
         And  the container is gone
 
@@ -42,18 +42,18 @@ Feature: Keep Container Alive
             """
         When container-do is called with `whoami`
         Then a container is started with name test-app-do
-        When we wait for 2.5s
+        When we wait for 4s
         Then the container is not running anymore
         And  the container is still there
 
     Scenario: Reset interval when commands are run
         When container-do is called with `whoami`
         Then a container is started with name test-app-do
-        When we wait for 1s
+        When we wait for 2s
         And  container-do is called with `whoami`
         And  we wait for another 1.5s
         Then the container is still running
-        When we wait for another 1s
+        When we wait for another 3s
         Then the container is not running anymore
 
     Scenario: Reuse kept container
@@ -63,7 +63,7 @@ Feature: Keep Container Alive
             """
         When container-do is called with `touch witness`
         Then a container is started with name test-app-do
-        When we wait for 2.5s
+        When we wait for 4s
         Then the container is not running anymore
         When container-do is called with `cat witness`
         Then the command exits with status 0
