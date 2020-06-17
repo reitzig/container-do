@@ -57,6 +57,7 @@ func main() {
     if err != nil {
         handle(err)
     }
+    //noinspection GoUnhandledErrorResult
     defer logger.Sync()
     undo := zap.ReplaceGlobals(logger)
     defer undo()

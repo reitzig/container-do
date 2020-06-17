@@ -2,12 +2,13 @@ package main
 
 import (
     "fmt"
-    "github.com/pelletier/go-toml"
-    "go.uber.org/zap"
     "io/ioutil"
     . "path/filepath"
     "strings"
     "time"
+
+    "github.com/pelletier/go-toml"
+    "go.uber.org/zap"
 )
 
 type setup struct {
@@ -32,17 +33,6 @@ var OsFlavors = []string{
     "busybox",   // for users: assert BusyBox tools
 }
 
-// TODO: Doesn't work?
-//type myDuration struct {
-//    Value duration.Duration
-//}
-//
-//func (m *myDuration) UnmarshalTOML(p interface{}) error {
-//    d, err := duration.ParseISO8601(p.(string))
-//    m.Value = d
-//    return err
-//}
-
 type container struct {
     Image string
     // Build  string // TODO: implement building image from Dockerfile?
@@ -54,7 +44,6 @@ type container struct {
     Environment map[string]string
     Mounts      []string
 
-    //KeepAlive   myDuration
     RawKeepAlive string `toml:"keep_alive" default:"15m"`
     KeepStopped  bool   `toml:"keep_stopped" default:"false"`
 

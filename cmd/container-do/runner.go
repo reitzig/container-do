@@ -4,9 +4,10 @@ import (
     "bufio"
     "bytes"
     "fmt"
-    "go.uber.org/zap"
     "strings"
     "time"
+
+    "go.uber.org/zap"
 )
 
 type runnerExec interface {
