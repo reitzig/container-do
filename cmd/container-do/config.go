@@ -132,15 +132,6 @@ func parseConfig(fileName string) (Config, error) {
         config.Container.Name = strings.ToLower(Base(Dir(absolutePath))) + "-do"
     }
 
-    if config.Container.WorkDir == "" {
-        // TODO implement default work_dir
-        // docker inspect --format="{{.ContainerConfig.WorkingDir}}"
-    }
-
-    if len(config.Container.Mounts) == 0 {
-        // TODO: implement default mount
-    }
-
     zap.L().Sugar().Debugf("Parsed config: %+v", config)
     return config, err
 }

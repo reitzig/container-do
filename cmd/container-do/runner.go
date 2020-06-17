@@ -4,6 +4,7 @@ import (
     "bufio"
     "bytes"
     "fmt"
+    "path/filepath"
     "strings"
     "time"
 
@@ -77,6 +78,24 @@ func extractOsFlavorFromReleaseFile(out []byte) (string, error) {
     }
 
     return osFlavor, nil
+}
+
+func expandHostPath(bindMountSpec string) (string, error) {
+    parts := strings.Split(bindMountSpec, ":")
+    if len(parts) != 2 {
+        return bindMountSpec, UsageError{Message: "Invalid bind-mount 'bind'; check for missing/superfluous colons!"}
+    }
+
+    hostPath, err := filepath.Abs(parts[0])
+    if err != nil {
+        return bindMountSpec, err
+    }
+    hostPath, err = filepath.EvalSymlinks(hostPath)
+    if err != nil {
+        return bindMountSpec, err
+    }
+
+    return fmt.Sprintf("%s:%s", hostPath, parts[1]), nil
 }
 
 func nextContainerStopTime(c container) string {

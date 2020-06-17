@@ -10,6 +10,9 @@ Feature: Keep Container Alive
             [container]
             image = "ubuntu"
             keep_alive = "2s"
+
+            # Override defaults that would impact timing:
+            mounts = []
             """
 
     Scenario: Keep Container Alive for Configured Interval

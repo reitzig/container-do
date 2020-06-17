@@ -1,8 +1,10 @@
 package main
 
 import (
+    "fmt"
     "os"
     "os/exec"
+    "path/filepath"
     "strings"
 
     "go.uber.org/zap"
@@ -94,10 +96,52 @@ func (d DockerRunner) CreateContainer(c *container) error {
         args = append(args, "--rm")
     }
 
-    // TODO: add mounts
-
     if c.WorkDir != "" {
         args = append(args, "--workdir", c.WorkDir)
+    }
+
+    if c.Mounts == nil {
+        hostWorkDir, err := os.Getwd()
+        if err != nil {
+            return err
+        }
+        hostWorkDir, err = filepath.EvalSymlinks(hostWorkDir)
+        if err != nil {
+            return err
+        }
+
+        containerWorkDir := c.WorkDir
+        if c.WorkDir == "" {
+            out, err := d.runDockerCommand("inspect", "--format={{.ContainerConfig.WorkingDir}}", c.Image)
+            if err != nil {
+                return err
+            }
+            if wd := strings.TrimSpace(string(out)); wd == "" {
+                containerWorkDir = "/"
+            } else {
+                containerWorkDir = wd
+            }
+        }
+
+        if containerWorkDir == "/" {
+            // Forbidden by Docker!
+            zap.L().Sugar().Warn("Can not setup up default bind-mount to container root; " +
+                "specify other working directory or declare valid mounts explicitly!")
+        } else {
+            bindMount := fmt.Sprintf("%s:%s", hostWorkDir, containerWorkDir)
+            zap.L().Sugar().Debug("Using default bind-mount '%s'", bindMount)
+            args = append(args, "--volume", bindMount)
+        }
+    } else if len(c.Mounts) == 0 {
+        zap.L().Debug("Volume bind-mounts disabled by user.")
+    } else {
+        for _, bind := range c.Mounts {
+            bind, err = expandHostPath(bind)
+            if err != nil {
+                return err
+            }
+            args = append(args, "--volume", bind)
+        }
     }
 
     for key, value := range c.Environment {

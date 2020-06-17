@@ -5,7 +5,7 @@ require 'open3'
 When(/^container-do is called with `([^`]+)`$/) do |command|
   containers_before, _ = Open3.capture2e($docker, "ps", "-aq")
   command = command.split(/\s+/)
-  @run_output, status = Open3.capture2e("#{@host_workdir}/#{$container_do}", *command)
+  @run_output, @run_err_out, status = Open3.capture3("#{@host_workdir}/#{$container_do}", *command)
   @run_status = status.exitstatus
   containers_after, _ = Open3.capture2e($docker, "ps", "-aq")
 

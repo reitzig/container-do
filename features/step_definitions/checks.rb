@@ -47,17 +47,27 @@ Then(/^the container has working directory ([^\s]+)$/) do |work_dir|
   expect(out.strip).to eq(work_dir)
 end
 
-Then(/^the container has a volume mount for ([^\s]+) at ([^\s]+)$/) do |host_dir, container_dir|
-  pending # TODO
-
-  out, status = Open3.capture2e($docker, "inspect", '--format={{json .HostConfig.Binds}}', @container)
+def list_container_volume_binds(container)
+  out, status = Open3.capture2e($docker, "inspect", '--format={{json .HostConfig.Binds}}', container)
   unless status.success?
     log(out)
     raise "Could not determine container mounts"
   end
 
+  return out
+end
+
+Then(/^the container has a volume mount for ([^\s]+) at ([^\s]+)$/) do |host_dir, container_dir|
+  json_list = list_container_volume_binds(@container)
+
   host_dir = File.absolute_path(host_dir)
-  expect(out.strip).to match(%r{"#{host_dir}:#{container_dir}"})
+  expect(json_list.strip).to match(%r{"#{host_dir}:#{container_dir}"})
+end
+
+Then("the container has no volume mounts") do
+  json_list = list_container_volume_binds(@container)
+
+  expect(json_list.strip).to eq("null")
 end
 
 Then(/^the container has an environment variable ([A-Z_]+) with value "([^"]*)"$/) do |key, value|
@@ -74,11 +84,11 @@ Then('the command exits with status {int}') do |status|
   expect(@run_status).to eq(status)
 end
 
-Then("(the )command/its output is {string}") do |output|
-  expect(@run_output).to eq(output)
+Then("(the )command/its (standard )output is {string}") do |output|
+  expect(@run_output.strip).to eq(output)
 end
 
-Then("(the )command/its output contains {string}") do |output|
+Then("(the )command/its (standard )output contains {string}") do |output|
   expect(@run_output).to match(output)
 end
 
