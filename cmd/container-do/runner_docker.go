@@ -95,7 +95,10 @@ func (d DockerRunner) CreateContainer(c *container) error {
     }
 
     // TODO: add mounts
-    // TODO: add -w if necessary
+
+    if c.WorkDir != "" {
+        args = append(args, "--workdir", c.WorkDir)
+    }
 
     for key, value := range c.Environment {
         args = append(args, "-e", key+"="+value)
@@ -116,8 +119,7 @@ func (d DockerRunner) CreateContainer(c *container) error {
     }
 
     // Run requested setup
-    // TODO: run setup, if any
-    // TODO: add -w if necessary
+    // TODO: run setup, if any; add -w if necessary
     return err
 }
 
@@ -135,8 +137,7 @@ func (d DockerRunner) ExecuteCommand(c *container, commandAndParameters []string
     // Make sure container isn't killed while our command is running:
     _ = d.setKeepAliveToken(c, keepAliveIndefinitely)
 
-    // TODO: add -w if necessary
-    args := append([]string{"exec", "-i", c.Name}, commandAndParameters...)
+    args := append([]string{"exec", "-i", "-w", c.WorkDir, c.Name}, commandAndParameters...)
     cmd := exec.Command(d.RunnerExecutable(), args...)
     cmd.Stdin = os.Stdin
     cmd.Stdout = os.Stdout

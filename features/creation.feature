@@ -27,7 +27,6 @@ Feature: Container Creation
         When container-do is called with `whoami`
         Then a container is started with name test-app-foo
 
-    @pending
     Scenario: Set Working Directory
         Given the config file also contains
             """

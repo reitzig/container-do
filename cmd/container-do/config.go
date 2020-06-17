@@ -40,7 +40,7 @@ type container struct {
     osFlavor    string // lazily populated by runnerExec.DetermineOsFlavor
 
     Name        string
-    WorkDir     string
+    WorkDir     string `toml:"work_dir"`
     Environment map[string]string
     Mounts      []string
 
