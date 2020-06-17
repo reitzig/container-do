@@ -14,8 +14,8 @@ jobs:
     strategy:
       matrix:
         os:
-          - 'ubuntu-latest'
-          #- 'windows-latest'
+          #- 'ubuntu-latest'
+          - 'windows-latest'
           #- 'macos-latest' # Nope: https://github.community/t/why-is-docker-not-installed-on-macos/17017/6
     steps:
       - uses: actions/checkout@v2
@@ -40,8 +40,8 @@ jobs:
     strategy:
       matrix:
         os:
-          - 'ubuntu-latest'
-          #- 'windows-latest'
+          #- 'ubuntu-latest'
+          - 'windows-latest'
           #- 'macos-latest' # Nope: https://github.community/t/why-is-docker-not-installed-on-macos/17017/6
     needs: build
     env:
@@ -62,7 +62,8 @@ jobs:
         with:
           name: "container-do-${{ matrix.os }}"
 
-      - name: Fix lost permissions
+      - name: "Fix lost permissions (Unix-ish)"
+        if: ${{ !contains(matrix.os, 'windows') }}
         run: chmod +x container-do
 
       - name: Run deterministic tests
@@ -76,8 +77,8 @@ jobs:
     strategy:
       matrix:
         os:
-          - 'ubuntu-latest'
-          #- 'windows-latest'
+          #- 'ubuntu-latest'
+          - 'windows-latest'
           #- 'macos-latest' # Nope: https://github.community/t/why-is-docker-not-installed-on-macos/17017/6
     needs: build
     env:
@@ -98,8 +99,14 @@ jobs:
         with:
           name: "container-do-${{ matrix.os }}"
 
-      - name: Fix lost permissions
+      - name: "Fix lost permissions (Unix-ish)"
+        if: ${{ !contains(matrix.os, 'windows') }}
         run: chmod +x container-do
+
+      - name: "Fix lost permissions (Windows)"
+        if: contains(matrix.os, 'windows')
+        run: |
+          mv -Force container-do-debug container-do
 
       - name: Run deterministic tests
         run: cucumber --tags 'not @pending and @slow and not @timing'

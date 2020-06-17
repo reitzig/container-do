@@ -7,7 +7,7 @@ $container_do = "container-do"
 $docker = "docker"
 
 if FFI::Platform.windows?
-  $container_do += ".exe"
+  #$container_do += ".exe"
   $docker += ".exe"
 end
 
