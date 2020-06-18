@@ -23,3 +23,4 @@ Feature: Support Many Linux Flavors
             | registry.access.redhat.com/ubi8/ubi-minimal | Red Hat Enterprise Linux |
             | ubuntu                                      | Ubuntu                   |
             | alpine                                      | Alpine Linux             |
+            | oraclelinux:7-slim                          | Oracle Linux Server      |
