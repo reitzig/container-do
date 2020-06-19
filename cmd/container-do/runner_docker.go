@@ -90,7 +90,10 @@ func (d DockerRunner) CreateContainer(c *container) error {
     }
 
     // Create container according to config
-    args := []string{"create", "--name", c.Name}
+    args := []string{"create",
+        "--name", c.Name,
+        "--entrypoint", "sh", // override whatever shenanigans the image author came up with
+    }
 
     if !c.KeepStopped {
         args = append(args, "--rm")
@@ -129,7 +132,7 @@ func (d DockerRunner) CreateContainer(c *container) error {
                 "specify other working directory or declare valid mounts explicitly!")
         } else {
             bindMount := fmt.Sprintf("%s:%s", hostWorkDir, containerWorkDir)
-            zap.L().Sugar().Debug("Using default bind-mount '%s'", bindMount)
+            zap.L().Sugar().Debugf("Using default bind-mount '%s'", bindMount)
             args = append(args, "--volume", bindMount)
         }
     } else if len(c.Mounts) == 0 {
@@ -148,7 +151,8 @@ func (d DockerRunner) CreateContainer(c *container) error {
         args = append(args, "-e", key+"="+value)
     }
 
-    args = append(args, c.Image, "sh", "-c", containerRunScript(*c))
+    // NB: '-c' is for 'sh' entrypoint, specified above
+    args = append(args, c.Image, "-c", containerRunScript(*c))
 
     _, err = d.runDockerCommand(args...)
     // TODO: avoid mishaps by storing container ID and checking for conflicts?
@@ -178,6 +182,7 @@ func (d DockerRunner) setKeepAliveToken(c *container, value string) error {
 }
 
 func (d DockerRunner) ExecutePredefined(c *container, thing thingToRun) error {
+    // TODO: Do we want to attach do these? Maybe as an option?
     _ = d.setKeepAliveToken(c, keepAliveIndefinitely)
     var err error = nil
 
@@ -212,7 +217,7 @@ func (d DockerRunner) ExecuteCommand(c *container, commandAndParameters []string
     cmd.Stdout = os.Stdout
     cmd.Stderr = os.Stderr
 
-    zap.L().Sugar().Debug("Will run command: `%s %s`", cmd.Path, strings.Join(cmd.Args, " "))
+    zap.L().Sugar().Debugf("Will run command: `%s %s`", cmd.Path, strings.Join(cmd.Args, " "))
     cmdErr := cmd.Run()
 
     // Make container stay alive for another keep-alive interval

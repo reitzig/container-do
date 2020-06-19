@@ -15,6 +15,7 @@ Feature: Limited User Interface
     Scenario: Initialize Config File
         Given an empty project test-app
         When  container-do is called with `--init`
+        Then  the command exits with status 0
         Then  file ContainerDo.toml is a valid config file
         And  no container was started
 

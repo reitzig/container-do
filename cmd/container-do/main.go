@@ -5,6 +5,7 @@ import (
     "io/ioutil"
     "os"
     "os/exec"
+    "strings"
 
     "go.uber.org/zap"
 )
@@ -74,9 +75,10 @@ func main() {
             if fileExists(doFile) {
                 handle(UsageError{Message: fmt.Sprintf("Config file '%s' already exists.", doFile)})
             } else {
-                handle(ioutil.WriteFile(doFile, []byte(ConfigFileTemplate), 0o644))
-                zap.L().Sugar().Debug("Created new %s from template.", doFile)
+                handle(ioutil.WriteFile(doFile, []byte(strings.TrimSpace(ConfigFileTemplate)), 0o644))
+                zap.L().Sugar().Debugf("Created new %s from template.", doFile)
             }
+            os.Exit(0)
     }
 
     config, err := parseConfig(doFile)
@@ -87,6 +89,8 @@ func main() {
     handle(err)
 
     if !containerExists {
+        // TODO: If we don't already have the image, we might block here for a while without input
+        //       Pull explicitly and attach?
         err = runner.CreateContainer(&config.Container)
         handle(err)
         err = runner.RestartContainer(&config.Container)

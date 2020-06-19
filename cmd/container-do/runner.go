@@ -83,8 +83,14 @@ func extractOsFlavorFromReleaseFile(out []byte) (string, error) {
 
 func expandHostPath(bindMountSpec string) (string, error) {
     parts := strings.Split(bindMountSpec, ":")
-    if len(parts) != 2 {
-        return bindMountSpec, UsageError{Message: "Invalid bind-mount 'bind'; check for missing/superfluous colons!"}
+    if len(parts) < 2 || len(parts) > 3 {
+        return bindMountSpec,
+               UsageError{
+                   Message: fmt.Sprintf(
+                       "Invalid bind-mount '%s'; check for missing/superfluous colons!",
+                       bindMountSpec,
+                   ),
+               }
     }
 
     hostPath, err := filepath.Abs(parts[0])

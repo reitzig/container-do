@@ -122,12 +122,12 @@ func parseConfig(fileName string) (Config, error) {
 
     bytes, err := ioutil.ReadFile(fileName)
     if err != nil {
-        return config, err
+        return config, ConfigError{Message: err.Error()}
     }
 
     err = toml.Unmarshal(bytes, &config)
     if err != nil {
-        return config, err
+        return config, ConfigError{Message: err.Error()}
     }
 
     // Validation & Defaults
@@ -146,7 +146,7 @@ func parseConfig(fileName string) (Config, error) {
     if config.Container.Name == "" {
         absolutePath, err := Abs(fileName)
         if err != nil {
-            return config, err
+            return config, ConfigError{Message: err.Error()}
         }
 
         config.Container.Name = strings.ToLower(Base(Dir(absolutePath))) + "-do"
@@ -154,7 +154,7 @@ func parseConfig(fileName string) (Config, error) {
 
     for _, thingToRun := range config.ThingsToRun.asList() {
         if thingToRun.ScriptFile != "" && len(thingToRun.Commands) > 0 {
-            zap.L().Sugar().Info("Will run %s first, then commands!")
+            zap.L().Sugar().Infof("Will run %s first, then commands!")
         }
     }
 
