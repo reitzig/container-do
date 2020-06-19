@@ -89,16 +89,24 @@ func main() {
     if !containerExists {
         err = runner.CreateContainer(&config.Container)
         handle(err)
-    }
-
-    containerRunning, err := runner.IsContainerRunning(&config.Container)
-    handle(err)
-
-    if !containerRunning {
         err = runner.RestartContainer(&config.Container)
         handle(err)
+        err = runner.ExecutePredefined(&config.Container, config.ThingsToRun.Setup)
+        handle(err)
+    } else {
+        containerRunning, err := runner.IsContainerRunning(&config.Container)
+        handle(err)
+
+        if !containerRunning {
+            err = runner.RestartContainer(&config.Container)
+            handle(err)
+        }
     }
 
+    err = runner.ExecutePredefined(&config.Container, config.ThingsToRun.Before)
+    handle(err)
     err = runner.ExecuteCommand(&config.Container, os.Args[1:])
+    handle(err) // TODO: Is aborting here what we want, usually?
+    err = runner.ExecutePredefined(&config.Container, config.ThingsToRun.After)
     handle(err)
 }

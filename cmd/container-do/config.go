@@ -11,12 +11,6 @@ import (
     "go.uber.org/zap"
 )
 
-type setup struct {
-    User       string `default:""`
-    ScriptFile string `default:""`
-    Commands   []string
-}
-
 type runner string
 
 const (
@@ -46,8 +40,6 @@ type container struct {
 
     RawKeepAlive string `toml:"keep_alive" default:"15m"`
     KeepStopped  bool   `toml:"keep_stopped" default:"false"`
-
-    Setup setup
 }
 
 func (c *container) KeepAlive() time.Duration {
@@ -58,10 +50,28 @@ func (c *container) KeepAlive() time.Duration {
     return d
 }
 
+type thingToRun struct {
+    User       string `default:""`
+    ScriptFile string `toml:"script_file" default:""`
+    Commands   []string
+}
+
+type thingsToRun struct {
+    Setup  thingToRun
+    Before thingToRun
+    After  thingToRun
+}
+
+func (t *thingsToRun) asList() []thingToRun {
+    return []thingToRun {t.Setup, t.Before, t.After}
+}
+
 type Config struct {
     Runner runner `default:"docker"`
     // TODO: allow setting executable explicitly?
     Container container
+
+    ThingsToRun thingsToRun `toml:"run"`
 }
 
 const ConfigFileTemplate = `
@@ -79,7 +89,17 @@ image = "<insert name/URL here>"
 [container.environment]
 # KEY = "value"
 
-[container.setup]
+[run.setup]
+# user        = ""
+# script_file = ""
+# commands    = []
+
+[run.before]
+# user        = ""
+# script_file = ""
+# commands    = []
+
+[run.after]
 # user        = ""
 # script_file = ""
 # commands    = []
@@ -130,6 +150,12 @@ func parseConfig(fileName string) (Config, error) {
         }
 
         config.Container.Name = strings.ToLower(Base(Dir(absolutePath))) + "-do"
+    }
+
+    for _, thingToRun := range config.ThingsToRun.asList() {
+        if thingToRun.ScriptFile != "" && len(thingToRun.Commands) > 0 {
+            zap.L().Sugar().Info("Will run %s first, then commands!")
+        }
     }
 
     zap.L().Sugar().Debugf("Parsed config: %+v", config)

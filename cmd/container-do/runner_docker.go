@@ -125,7 +125,7 @@ func (d DockerRunner) CreateContainer(c *container) error {
 
         if containerWorkDir == "/" {
             // Forbidden by Docker!
-            zap.L().Sugar().Warn("Can not setup up default bind-mount to container root; " +
+            zap.L().Sugar().Warn("Can not set up default bind-mount to container root; " +
                 "specify other working directory or declare valid mounts explicitly!")
         } else {
             bindMount := fmt.Sprintf("%s:%s", hostWorkDir, containerWorkDir)
@@ -168,12 +168,37 @@ func (d DockerRunner) CreateContainer(c *container) error {
 }
 
 func (d DockerRunner) RestartContainer(c *container) error {
-    _, err := exec.Command(d.RunnerExecutable(), "start", c.Name).Output()
+    _, err := d.runDockerCommand("start", c.Name)
     return err
 }
 
 func (d DockerRunner) setKeepAliveToken(c *container, value string) error {
     _, err := d.runDockerCommand("exec", c.Name, "sh", "-c", setKeepAliveTokenScript(value))
+    return err
+}
+
+func (d DockerRunner) ExecutePredefined(c *container, thing thingToRun) error {
+    _ = d.setKeepAliveToken(c, keepAliveIndefinitely)
+    var err error = nil
+
+    execCmd := []string{"exec"}
+    if thing.User != "" {
+        execCmd = append(execCmd, "--user", thing.User)
+    }
+    execCmd = append(execCmd, c.Name)
+
+    if thing.ScriptFile != "" {
+        _, err = d.runDockerCommand(append(execCmd, thing.ScriptFile)...)
+    }
+    for _, cmd := range thing.Commands {
+        if err != nil {
+            break
+        }
+
+        _, err = d.runDockerCommand(append(execCmd, "sh", "-c", cmd)...)
+    }
+
+    _ = d.setKeepAliveToken(c, nextContainerStopTime(*c))
     return err
 }
 

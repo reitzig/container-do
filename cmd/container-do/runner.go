@@ -21,6 +21,7 @@ type runnerExec interface {
     CreateContainer(c *container) error
     RestartContainer(c *container) error
 
+    ExecutePredefined(c *container, thing thingToRun) error
     // Attach and block!
     ExecuteCommand(c *container, commandAndArguments []string) error
 }

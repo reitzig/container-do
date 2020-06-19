@@ -4,18 +4,32 @@ require 'open3'
 
 World MockProject
 
+AfterStep do |scenario|
+  if @command_just_ran && @run_status != 0
+    log("Command Exit Status: #{@run_status}")
+    unless @run_output.nil?
+      log("Command Standard Output:")
+      log("---")
+      log(@run_output)
+      log("---")
+    end
+    unless @run_err_out.nil?
+      log("Command Error Output:")
+      log("---")
+      log(@run_err_out)
+      log("---")
+    end
+
+    @command_just_ran = false
+  end
+end
+
 After do |scenario|
   if scenario.failed?
     unless @config_file.nil?
       log("Config file:")
       log("---")
       log(File.read(@config_file))
-      log("---")
-    end
-      unless @run_output.nil?
-      log("Command Output:")
-      log("---")
-      log(@run_output)
       log("---")
     end
   end

@@ -11,6 +11,7 @@ When(/^container-do is called with `([^`]+)`$/) do |command|
 
   @new_containers = containers_after.strip.split("\n") - containers_before.strip.split("\n")
   @containers = (@containers || []).concat(@new_containers)
+  @command_just_ran = true
 end
 
 When("we wait for( another) {float}s") do |interval|
