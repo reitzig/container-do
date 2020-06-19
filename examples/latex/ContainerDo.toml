@@ -1,0 +1,29 @@
+[container]
+image = "reitzig/texlive-base-luatex"
+os_flavor = "alpine"
+
+name = "container-do-latex-example"
+work_dir = "/work/tmp"
+
+mounts = [
+    ".:/work/src:ro",
+    "./out:/work/out"
+]
+keep_alive = "15m"
+
+[run.setup]
+commands = [
+    "tlmgr update --self",
+    "tlmgr install < /work/src/Texlivefile"
+]
+
+[run.before]
+commands = [
+    "cp -rf /work/src/* ./",
+    "rm -f *.pdf *.log"
+]
+
+[run.after]
+commands = [
+    "cp *.pdf *.log /work/out/"
+]
