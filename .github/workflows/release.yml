@@ -1,0 +1,89 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: 'ubuntu-18.04'
+    strategy:
+      matrix:
+        target-os:
+          - 'linux'
+          - 'darwin'
+          - 'windows'
+        target-arch:
+          - 'amd64'
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Get the version
+        id: get_version
+        run: echo ::set-output name=VERSION::${GITHUB_REF#refs/tags/}
+
+      - uses: actions/setup-go@v2
+        with:
+          go-version: '^1.14.2'
+
+      - run: |
+          version="${{ steps.get_version.outputs.VERSION }}"
+
+          version_flag="-X main.Version=${version}"
+          os_arch_flag="-X main.OsArch=${GOOS}/${GOARCH}"
+          build_flag="-X main.Build=$(date -Iminute)"
+
+          go build -ldflags "-s -w ${version_flag} ${os_arch_flag} ${build_flag}" \
+            -o container-do ./...
+
+          archive_name="container-do_${version}_${GOOS}-${GOARCH}"
+          if [[ "${GOOS}" == "windows" ]]; then
+              zip "${archive_name}.zip" container-do LICENSE README.md
+          else
+              tar -czf "${archive_name}.tar.gz" container-do LICENSE README.md
+          fi
+        env:
+          GOOS: ${{ matrix.target-os }}
+          GOARCH: ${{ matrix.target-arch }}
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: "Build Archives"
+          path: 'container-do_*'
+
+  release:
+    runs-on: 'ubuntu-18.04'
+    needs: build
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions/download-artifact@v2
+        with:
+          name: "Build Archives"
+
+      - name: Collect asset names
+        id: asset_names
+        run: echo ::set-output name=LIST::$(ls container-do_*.{tar.gz,zip})
+
+      - name: Is pre-release?
+        id: is_pre_release
+        run: |
+          version="${GITHUB_REF#refs/tags/}"
+          if [[ "${version}" =~ -.*$ ]]; then
+            echo ::set-output name=IS_PRERELEASE::true
+          else
+            echo ::set-output name=IS_PRERELEASE::false
+          fi
+
+      - name: Release
+        uses: docker://antonyurchenko/git-release:v3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DRAFT_RELEASE: "false"
+          PRE_RELEASE: ${{ steps.is_pre_release.outputs.IS_PRERELEASE }}
+          CHANGELOG_FILE: "CHANGELOG.md"
+          ALLOW_EMPTY_CHANGELOG: "false"
+          ALLOW_TAG_PREFIX: "true"
+        with:
+          args: "${{ steps.asset_names.outputs.LIST }}"

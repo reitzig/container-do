@@ -26,10 +26,16 @@ In particular,
 
 ## Install
 
-[Download](https://github.com/reitzig/container-do/releases/latest) the binary matching your OS and 
-put it on the `PATH`.
+[Download](https://github.com/reitzig/container-do/releases/latest) 
+the binary matching your OS and put it on the `PATH`.
 
-<!-- TODO: How to install from source? -->
+As an alternative, you can compile from the sources like so:
+
+```bash
+go get github.com/reitzig/container-do/cmd/container-do
+```
+
+Find the binary at `$GOPATH/bin`.
 
 ## Use
 

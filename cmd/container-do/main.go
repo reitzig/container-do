@@ -14,7 +14,15 @@ import (
 // TODO: make configurable, maybe via ENV?
 const doFile = "ContainerDo.toml"
 
-const usageMessage = `Usage:  container-do --help
+var (
+    Version string
+    OsArch  string
+    Build   string
+)
+
+const usageMessage = `container-do %s %s %s
+
+Usage:  container-do --help
             Print this message
 
         container-do --init
@@ -66,7 +74,7 @@ func main() {
 
     switch os.Args[1] {
         case "--help":
-            fmt.Printf(usageMessage, doFile, doFile)
+            fmt.Printf(usageMessage, Version, OsArch, Build, doFile, doFile)
             os.Exit(0)
         case "--init":
             if fileExists(doFile) {
