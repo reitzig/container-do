@@ -1,0 +1,12 @@
+{
+    "name": "hello-world",
+    "version": "1.0.0",
+    "main": "index.js",
+    "author": "reitzig",
+    "dependencies": {
+        "chalk": "^4.1.0"
+    },
+    "scripts": {
+        "prepare": "npm i -g @zeit/ncc"
+    }
+}

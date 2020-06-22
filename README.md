@@ -142,10 +142,11 @@ Here is a full list of the optional values:
 
 ### Examples
 
-We include some examples:
+Explore some use cases:
 
  - [Java with Maven](examples/java)
  - [LaTeX](examples/latex)
+ - [Node.js](examples/node)
 
 
 ## Short ADRs
