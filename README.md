@@ -44,6 +44,9 @@ container-do npm install
 will run `npm install` inside the container and, more specifically,
 through the default `SHELL` _in_ that container.
 
+Set environment variable `CONTAINER_DO_LOGGING` to `debug` to get more verbose
+logging.
+
 ### Config File
 
 At the very least, you will have to tell `container-do` which image to use.
@@ -62,7 +65,7 @@ Alternatively, run `container-do --init` to get a full template.
 
  - _Do you type `container-do` every time?_
  
-   Haha, no. Even considering shell completion, that's too much something I'll 
+   Haha, no. Even considering shell completion, that's too much for something I'll 
    use as often. On the CLI, an alias like `cdo` or `$` does wonders.
 
 

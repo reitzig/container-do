@@ -41,3 +41,7 @@ end
 Given(/^([a-zA-Z0-9\-_.]+) is executable$/) do |file|
   FileUtils.chmod("+x", file)
 end
+
+Given(/^environment variable ([A-Z_]+) is set to "([^"]+)"$/) do |key,value|
+  @env[key] = value
+end

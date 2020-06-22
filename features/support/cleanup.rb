@@ -34,6 +34,8 @@ After do |scenario|
     end
   end
 
+  @env = {}
+
   Dir.chdir(@host_workdir) unless @host_workdir.nil?
   FileUtils.rm_rf(@temp_dir) unless @temp_dir.nil?
   @containers.each do |c|

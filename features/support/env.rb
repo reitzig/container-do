@@ -34,4 +34,7 @@ World MockProject
 
 Before do
     @host_workdir = Dir.pwd
+    @env = {
+        "CONTAINER_DO_LOGGING" => "debug"
+    }
 end

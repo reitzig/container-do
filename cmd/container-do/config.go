@@ -56,6 +56,10 @@ type thingToRun struct {
     Commands   []string
 }
 
+func (t *thingToRun) willRunSomething() bool {
+    return t.ScriptFile != "" || len(t.Commands) > 0
+}
+
 type thingsToRun struct {
     Setup  thingToRun
     Before thingToRun

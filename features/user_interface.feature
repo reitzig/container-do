@@ -17,7 +17,7 @@ Feature: Limited User Interface
         When  container-do is called with `--init`
         Then  the command exits with status 0
         Then  file ContainerDo.toml is a valid config file
-        And  no container was started
+        And   no container was started
 
     Scenario: Do not overwrite Config File
         Given config file for project test-app
@@ -39,3 +39,25 @@ Feature: Limited User Interface
         Then  the command exits with status 0
         And   the command output contains "Usage:"
         And   no container was started
+
+    Scenario: Regular Logging
+        Given   config file for project test-app
+            """
+            [container]
+            image = "ubuntu"
+            mounts = []
+            """
+        And  environment variable CONTAINER_DO_LOGGING is set to "anything-but-debug"
+        When container-do is called with `whoami`
+        Then its error output is ""
+
+    Scenario: Debug Logging
+        Given config file for project test-app
+            """
+            [container]
+            image = "ubuntu"
+            mounts = []
+            """
+        And  environment variable CONTAINER_DO_LOGGING is set to "debug"
+        When container-do is called with `whoami`
+        Then its error output contains "DEBUG"

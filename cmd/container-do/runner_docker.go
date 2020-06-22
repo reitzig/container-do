@@ -30,7 +30,7 @@ func (d DockerRunner) runDockerCommand(commandAndArguments ...string) ([]byte, e
         }
     }
     if len(out) > 0 {
-        zap.L().Sugar().Debugf("Command output: '%s'", string(out))
+        zap.L().Sugar().Debugf("Command output: '%s'", strings.TrimSpace(string(out)))
     }
 
     return out, err
@@ -182,6 +182,10 @@ func (d DockerRunner) setKeepAliveToken(c *container, value string) error {
 }
 
 func (d DockerRunner) ExecutePredefined(c *container, thing thingToRun) error {
+    if !thing.willRunSomething() {
+        return nil
+    }
+
     // TODO: Do we want to attach do these? Maybe as an option?
     _ = d.setKeepAliveToken(c, keepAliveIndefinitely)
     var err error = nil

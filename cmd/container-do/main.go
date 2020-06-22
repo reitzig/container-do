@@ -51,9 +51,6 @@ func (e UsageError) Error() string {
 }
 
 func main() {
-    // TODO: add command to stop/kill/"purge", i.e. stop/kill/remote container?
-
-    // TODO: Add CLI or ENV flag to turn on debug logging?
     logger, err := makeLogger()
     if err != nil {
         handle(err)
@@ -76,7 +73,7 @@ func main() {
                 handle(UsageError{Message: fmt.Sprintf("Config file '%s' already exists.", doFile)})
             } else {
                 handle(ioutil.WriteFile(doFile, []byte(strings.TrimSpace(ConfigFileTemplate)), 0o644))
-                zap.L().Sugar().Debugf("Created new %s from template.", doFile)
+                zap.L().Sugar().Infof("Created new %s from template.", doFile)
             }
             os.Exit(0)
     }

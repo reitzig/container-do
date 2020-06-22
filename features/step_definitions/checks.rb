@@ -92,6 +92,14 @@ Then("(the )command/its (standard )output contains {string}") do |output|
   expect(@run_output).to match(output)
 end
 
+Then("(the )command/its error output is {string}") do |output|
+  expect(@run_err_out).to eq(output)
+end
+
+Then("(the )command/its error output contains {string}") do |output|
+  expect(@run_err_out).to match(output)
+end
+
 Then("the container is( still) running") do
   out, status = Open3.capture2e($docker, "inspect", '--format={{.State.Running}}', @container)
   unless status.success?
@@ -132,7 +140,7 @@ Then(/^file ContainerDo\.toml is a valid config file$/) do
   # Instead, we expect it to run all the way up until it discovers that the
   # placeholder is, in fact, not a valid Docker image.
 
-  output, status = Open3.capture2e("#{@host_workdir}/#{$container_do}", "cat", "/neverthere")
+  output, status = Open3.capture2e(@env, "#{@host_workdir}/#{$container_do}", "cat", "/neverthere")
   expect(status.success?).to be(false)
   expect(status.exitstatus).to be > 1
   expect(output).to match("Unable to find image") | match("docker: invalid reference format")
