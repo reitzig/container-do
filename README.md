@@ -3,9 +3,15 @@
 [![GitHub release date](https://img.shields.io/github/release-date/reitzig/container-do.svg)](https://github.com/reitzig/container-do/releases)
 [![Test](https://github.com/reitzig/container-do/workflows/Tests/badge.svg?branch=master&event=push)](https://github.com/reitzig/container-do/actions?query=workflow%3ATests+branch%3Amaster+event%3Apush++)
 
-# container-do (WIP)
+# container-do
 
-Run project-level CLI tools in (Linux) containers instead of installing them.
+Run project-level CLI tools in (Linux) containers.
+In particular,
+
+ - use tools not available on your platform,
+ - avoid managing version conflicts of tooling,
+ - persist and share specific setups, and 
+ - minimize the blast radius of potential mishaps.
 
 ### Premise
 
@@ -20,16 +26,19 @@ Run project-level CLI tools in (Linux) containers instead of installing them.
 
 ## Install
 
-<!-- TODO -->
+[Download](https://github.com/reitzig/container-do/releases/latest) the binary matching your OS and 
+put it on the `PATH`.
+
+<!-- TODO: How to install from source? -->
 
 ## Use
 
 _Prerequisites:_
 
- - Docker installed and user can run commands.
+ - Docker installed and user can run `docker`.
  - Container has `sh`.
 
-There are only two special commands:
+There are two special commands:
 
  - `container-do --help` -- print usage instructions.
  - `container-do --init` -- create config file (template).
@@ -44,8 +53,10 @@ container-do npm install
 will run `npm install` inside the container and, more specifically,
 through the default `SHELL` _in_ that container.
 
-Set environment variable `CONTAINER_DO_LOGGING` to `debug` to get more verbose
-logging.
+By default, `container-do` will try to stay out of your way and 
+allow you to focus on the normal command output.
+However, you can enable rather more verbose logging
+by setting environment variable `CONTAINER_DO_LOGGING` to `debug`.
 
 ### Config File
 
@@ -58,36 +69,97 @@ image = "my-image"
 ```
 
 Alternatively, run `container-do --init` to get a full template.
+Here is a full list of the optional values:
 
-<!-- TODO: document options and defaults -->
-
-## FAQ
-
- - _Do you type `container-do` every time?_
+ - `container.os_flavor` (_Default:_ auto-detect)
  
-   Haha, no. Even considering shell completion, that's too much for something I'll 
-   use as often. On the CLI, an alias like `cdo` or `$` does wonders.
+   For some commands run in the container, we need to know which flavor of Linux it runs.
+   While we will attempt to detect that automatically, this induces a slight performance
+   over head (and may fail).
+   Set to one of `debian`, `fedora`, `alpine`, `gnu/linux`, or `busybox`.
+
+ - `container.name` (_Default:_ `${project_dir}-do`)
+ 
+ - `container.work_dir` (_Default:_ `$WORKDIR`)
+ 
+   Use to override the working directory defined in the container image.
+   Set to an absolute path.
+ 
+ - `container.mounts`  (_Default:_ `[.:$WORKDIR]` / `[]`)
+ 
+   Unless the container working directory is `/`,
+   the default is a bind-mount from the host working directory to it.
+   Override with entries using the
+     [Docker `--volume` syntax](https://docs.docker.com/storage/bind-mounts/);
+   unlike `docker`, we will resolve relative host paths.
+
+ - `container.keep_alive` (_Default:_ `15m`)
+ 
+   The duration to keep the container alive for after the last command was run in it.
+   Set to any value compatible with [Go `time`](https://pkg.go.dev/time?tab=doc#ParseDuration).
+
+ - `container.keep_stopped` (_Default:_ `false`)
+ 
+   By default, we remove the container after it stops.
+   Set to `true` to have the container stick around.
+
+ - `container.environment` (_Default:_ none)
+    
+    Set environment variables of the container.
+
+ - `run.setup` -- run once after container creation  
+   `run.before` -- run once before each command  
+   `run.after` -- run once after each (successful) command
+   
+    Run pre-defined shell commands, each section specified by:
+    
+    - `run._.user` (_Default:_ `$USER`)
+    
+      Override the default container user to run the commands.
+       
+    - `run._.script_file` (_Default:_ none)   
+    
+      Set to a script file in (relative to `container.work_dir`).
+      Run before any of the `commands` in the same section.
+      
+    - `run._.commands` (_Default:_ `[]`)
+    
+      Set to a list of shell commands run one after the other,
+      so long as they are successful.
+
+### Examples
+
+We include some examples:
+
+ - [LaTeX](examples/latex)
 
 
-## Mini ARD
+## Short ADRs
 
-<!-- TODO: separate -->
-
- - Why containers?  
-   --> While this is not about running services, it seemed a prudent way
+ - _Why containers?_
+   
+   While this is not about running services, containers seem a prudent way
    to isolate versioned tooling from the host system without too much overhead.
    Also, the approach eliminates the need for tools specific to a certain ecosystem
    such as venv, rvm, etc.
- - Why Go?  
-   --> Using this a learning experience. Efficient binaries seem prudent here.
-   Also, Go seems be prevalent in the OCI space.
-   _If_ I were to use docker/client or libpod as libraries, they're written in Go.
- - Why TOML?  
-   --> better trade-off between expressiveness, cleanliness and usability 
-   than either of INI, JSON, YAML. 
- - Why not use docker/client resp. libpod as libraries?  
-   --> would mean higher maintenance debt (security patches etc)
-   (quote libpod doc)
+   
+ - _Why Go?_
+   
+   Efficient binaries seem prudent here.
+   Also, Go seems to be prevalent in the OCI space.
+   _If_ we were to use `docker/client` or `libpod` as libraries, 
+   those are written in Go.
+   
+ - _Why TOML?_  
+   
+   Comparing to the most common alternatives, 
+   TOML seems to provide a better trade-off between expressiveness, cleanliness and usability 
+   than either of INI, JSON, YAML.
+    
+ - _Why not use `docker/client` resp. `libpod` as libraries?_
+ 
+   That would mean higher maintenance debt (security patches etc.) and
+   put the duty of ensuring compatibility with user systems on us.
 
 
 ## Acknowledgements
