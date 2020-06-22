@@ -19,11 +19,11 @@ commands = [
 
 [run.before]
 commands = [
-    "cp -rf /work/src/* ./",
-    "rm -f *.pdf *.log"
+    "rm -f *.pdf *.log",
+    "cp -rf /work/src/* ./"
 ]
 
 [run.after]
 commands = [
-    "cp *.pdf *.log /work/out/"
+    "cp *.pdf *.log /work/out/ | true"
 ]

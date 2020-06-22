@@ -1,0 +1,11 @@
+[container]
+image = "maven:3-jdk-11-slim"
+os_flavor = "debian"
+
+name = "container-do-java-example"
+work_dir = "/app"
+
+[run.setup]
+commands    = [
+    "mvn dependency:resolve"
+]

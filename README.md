@@ -92,6 +92,9 @@ Here is a full list of the optional values:
    Override with entries using the
      [Docker `--volume` syntax](https://docs.docker.com/storage/bind-mounts/);
    unlike `docker`, we will resolve relative host paths.
+   
+   _Note:_ You also use 
+     [named volumes](https://docs.docker.com/storage/volumes/#create-and-manage-volumes)!
 
  - `container.keep_alive` (_Default:_ `15m`)
  
@@ -131,6 +134,7 @@ Here is a full list of the optional values:
 
 We include some examples:
 
+ - [Java with Maven](examples/java)
  - [LaTeX](examples/latex)
 
 
