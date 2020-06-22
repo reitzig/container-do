@@ -12,6 +12,7 @@ mounts = [
 keep_alive = "15m"
 
 [run.setup]
+attach = true
 commands = [
     "tlmgr update --self",
     "tlmgr install < /work/src/Texlivefile"

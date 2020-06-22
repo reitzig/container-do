@@ -43,6 +43,26 @@ Feature: Container Setup & Command pre-/post-processing
         When container-do is called with `cat /setup_witness`
         Then the command output is "I was here!"
 
+    Scenario: Setup without attach
+        Given the config file also contains
+            """
+            [run.setup]
+            attach = false
+            commands = [ "echo 'Do you see me?'" ]
+            """
+        When container-do is called with `whoami`
+        Then its output is "root"
+
+    Scenario: Setup with attach
+        Given the config file also contains
+            """
+            [run.setup]
+            attach = true
+            commands = [ "echo 'Do you see me?'" ]
+            """
+        When container-do is called with `whoami`
+        Then its output contains "Do you see me?"
+
     # TODO: Test container doesn't have a non-root user yet.
     @pending
     Scenario Outline: Setup as user

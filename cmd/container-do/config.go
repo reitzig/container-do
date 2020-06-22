@@ -51,6 +51,7 @@ func (c *container) KeepAlive() time.Duration {
 }
 
 type thingToRun struct {
+    Attach     bool   `default:"false"`
     User       string `default:""`
     ScriptFile string `toml:"script_file" default:""`
     Commands   []string
@@ -67,7 +68,7 @@ type thingsToRun struct {
 }
 
 func (t *thingsToRun) asList() []thingToRun {
-    return []thingToRun {t.Setup, t.Before, t.After}
+    return []thingToRun{t.Setup, t.Before, t.After}
 }
 
 type Config struct {
@@ -94,16 +95,19 @@ const ConfigFileTemplate = `
 # KEY = "value"
 
 [run.setup]
+# attach      = false
 # user        = ""
 # script_file = ""
 # commands    = []
 
 [run.before]
+# attach      = false
 # user        = ""
 # script_file = ""
 # commands    = []
 
 [run.after]
+# attach      = false
 # user        = ""
 # script_file = ""
 # commands    = []
@@ -120,7 +124,7 @@ func (e ConfigError) Error() string {
 func parseConfig(fileName string) (Config, error) {
     config := Config{}
 
-    if ! fileExists(doFile) {
+    if !fileExists(doFile) {
         return config, UsageError{Message: fmt.Sprintf("Config file %s missing", doFile)}
     }
 

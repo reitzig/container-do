@@ -35,6 +35,16 @@ func (d DockerRunner) runDockerCommand(commandAndArguments ...string) ([]byte, e
     return out, err
 }
 
+func (d DockerRunner) runDockerCommandAttached(commandAndArguments ...string) error {
+    cmd := exec.Command(d.RunnerExecutable(), commandAndArguments...)
+    cmd.Stdin = os.Stdin
+    cmd.Stdout = os.Stdout
+    cmd.Stderr = os.Stderr
+
+    zap.L().Sugar().Debugf("Will run command: `%s %s`", cmd.Path, strings.Join(cmd.Args, " "))
+    return cmd.Run()
+}
+
 // Run this before any command that needs `c.osFlavor` set.
 func (d DockerRunner) DetermineOsFlavor(c *container) error {
     if c.osFlavor == "" {
@@ -185,7 +195,6 @@ func (d DockerRunner) ExecutePredefined(c *container, thing thingToRun) error {
         return nil
     }
 
-    // TODO: Do we want to attach do these? Maybe as an option?
     _ = d.setKeepAliveToken(c, keepAliveIndefinitely)
     var err error = nil
 
@@ -203,7 +212,12 @@ func (d DockerRunner) ExecutePredefined(c *container, thing thingToRun) error {
             break
         }
 
-        _, err = d.runDockerCommand(append(execCmd, "sh", "-c", cmd)...)
+        dockerCmd := append(execCmd, "sh", "-c", cmd)
+        if thing.Attach {
+            err = d.runDockerCommandAttached(dockerCmd...)
+        } else {
+            _, err = d.runDockerCommand(dockerCmd...)
+        }
     }
 
     _ = d.setKeepAliveToken(c, nextContainerStopTime(*c))
@@ -215,13 +229,7 @@ func (d DockerRunner) ExecuteCommand(c *container, commandAndParameters []string
     _ = d.setKeepAliveToken(c, keepAliveIndefinitely)
 
     args := append([]string{"exec", "-i", "-w", c.WorkDir, c.Name}, commandAndParameters...)
-    cmd := exec.Command(d.RunnerExecutable(), args...)
-    cmd.Stdin = os.Stdin
-    cmd.Stdout = os.Stdout
-    cmd.Stderr = os.Stderr
-
-    zap.L().Sugar().Debugf("Will run command: `%s %s`", cmd.Path, strings.Join(cmd.Args, " "))
-    cmdErr := cmd.Run()
+    cmdErr := d.runDockerCommandAttached(args...)
 
     // Make container stay alive for another keep-alive interval
     _ = d.setKeepAliveToken(c, nextContainerStopTime(*c))

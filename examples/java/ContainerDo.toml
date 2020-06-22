@@ -6,6 +6,7 @@ name = "container-do-java-example"
 work_dir = "/app"
 
 [run.setup]
+attach = true
 commands    = [
     "mvn dependency:resolve"
 ]

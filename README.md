@@ -116,6 +116,10 @@ Here is a full list of the optional values:
    
     Run pre-defined shell commands, each section specified by:
     
+    - `run._.attach` (_Default:_ `false`)
+    
+      Set `true` in order to attach the current shell to the command runs.
+    
     - `run._.user` (_Default:_ `$USER`)
     
       Override the default container user to run the commands.

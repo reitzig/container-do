@@ -8,7 +8,7 @@ container-do mvn exec:java -Dexec.mainClass="my.app.App"
 ```
 
 _Note:_ By its nature, Maven downloads quite a few dependency on its first run,
-here "hidden" in `container.setup`.
+here triggered in `run.setup`.
 You may want to follow the 
   [official documentation](https://hub.docker.com/_/maven)
 and persist the local repository in a volume:
