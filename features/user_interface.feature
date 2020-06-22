@@ -16,8 +16,14 @@ Feature: Limited User Interface
         Given an empty project test-app
         When  container-do is called with `--init`
         Then  the command exits with status 0
-        Then  file ContainerDo.toml is a valid config file
+        Then  file ContainerDo.toml is a commented valid config file
         And   no container was started
+
+    Scenario: Handle Config File Template
+        Given an empty project test-app
+        When  container-do is called with `--init`
+        And   container-do is called with `whoami`
+        Then  the command exits with status 1
 
     Scenario: Do not overwrite Config File
         Given config file for project test-app

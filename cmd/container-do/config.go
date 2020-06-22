@@ -80,13 +80,13 @@ type Config struct {
 
 const ConfigFileTemplate = `
 [container]
-image = "<insert name/URL here>"
+# image = "insert name/URL here"
 # os_flavor = ""
 
-# name = "basename(__DIR__)-do"
+# name = "project-do"
 # work_dir = "WORKDIR"
 
-# mounts = ["__DIR__:$work_dir"]
+# mounts = [".:$work_dir"]
 # keep_alive = "15m"
 # keep_stopped = false
 

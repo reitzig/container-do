@@ -134,15 +134,26 @@ And(/^file ([^\s]+) (?:still )?contains$/) do |file_name, expected_content|
 end
 
 
-Then(/^file ContainerDo\.toml is a valid config file$/) do
+Then(/^file ([^\s]+) is a commented valid config file$/) do |config_file|
   # We don't _actually_ have an easy way to parse the file by itself, so we
-  # force the app to do it an confirm we're _not_ seeing a config error.
+  # force the app to do it and confirm we're _not_ seeing a config error.
   # Instead, we expect it to run all the way up until it discovers that the
   # placeholder is, in fact, not a valid Docker image.
 
+  # First, uncomment all lines in the file
+  lines = File.readlines(config_file)
+  File.open(config_file, "w") do |f|
+    lines.each do |l|
+      f.write(l.sub(/^\s*#\s*/, ""))
+    end
+  end
+
+  @config_file ||= config_file
+
+  # Now, pretend to run a command
   output, status = Open3.capture2e(@env, "#{@host_workdir}/#{$container_do}", "cat", "/neverthere")
   expect(status.success?).to be(false)
-  expect(status.exitstatus).to be > 1
+  expect(status.exitstatus).to be > 1 # Both ConfigError and "command '/neverthere' not found" would yield 1
   expect(output).to match("Unable to find image") | match("docker: invalid reference format")
 end
 
