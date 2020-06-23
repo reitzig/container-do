@@ -15,7 +15,7 @@ keep_alive = "15m"
 attach = true
 commands = [
     "tlmgr update --self",
-    "tlmgr install < /work/src/Texlivefile"
+    "eval 'xargs tlmgr install < /work/src/Texlivefile'"
 ]
 
 [run.before]
