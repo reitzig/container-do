@@ -37,6 +37,7 @@ type container struct {
     WorkDir     string `toml:"work_dir"`
     Environment map[string]string
     Mounts      []string
+    Ports       []string
 
     RawKeepAlive string `toml:"keep_alive" default:"15m"`
     KeepStopped  bool   `toml:"keep_stopped" default:"false"`
@@ -88,6 +89,7 @@ const ConfigFileTemplate = `
 # work_dir = "WORKDIR"
 
 # mounts = [".:$work_dir"]
+# ports = []
 # keep_alive = "15m"
 # keep_stopped = false
 

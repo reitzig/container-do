@@ -156,6 +156,10 @@ func (d DockerRunner) CreateContainer(c *container) error {
         }
     }
 
+    for _, mapping := range c.Ports {
+        args = append(args, "--publish", mapping)
+    }
+
     for key, value := range c.Environment {
         args = append(args, "-e", key+"="+value)
     }

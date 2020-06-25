@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'open3'
+require 'json'
 
 Given(/^(\w+) is installed$/) do |command|
   raise "#{command} not installed" if which(command).nil?
@@ -54,7 +55,7 @@ def list_container_volume_binds(container)
     raise "Could not determine container mounts"
   end
 
-  return out
+  out
 end
 
 Then(/^the container has a volume mount for ([^\s]+) at ([^\s]+)$/) do |host_dir, container_dir|
@@ -68,6 +69,40 @@ Then("the container has no volume mounts") do
   json_list = list_container_volume_binds(@container)
 
   expect(json_list.strip).to eq("null")
+end
+
+def list_published_ports(container)
+  out, status = Open3.capture2e($docker, "inspect", '--format={{json .NetworkSettings.Ports}}', container)
+  unless status.success?
+    log(out)
+    raise "Could not determine exposed ports"
+  end
+
+  JSON.parse(out).map do |k,v|
+    # k ~ "80/tcp"
+    # v ~ [{"HostPort": "8080"}]
+    [
+      k.split("/")[0],
+      v.map { |m| m["HostPort"] }
+    ]
+  end.to_h
+end
+
+And("the container publishes no ports") do
+  expect(list_published_ports(@container)).to be_empty
+end
+
+Then(/^the container publishes port ([0-9]+)(?: as ([0-9]+))?$/) do |container_port, host_port|
+  ports_map = list_published_ports(@container)
+
+  expect(ports_map).not_to be_empty
+  expect(ports_map).to have_key(container_port)
+
+  if host_port.nil?
+    expect(ports_map[container_port]).not_to be_empty
+  else
+    expect(ports_map[container_port]).to include(host_port)
+  end
 end
 
 Then(/^the container has an environment variable ([A-Z_]+) with value "([^"]*)"$/) do |key, value|

@@ -102,6 +102,12 @@ Here is a full list of the optional values:
    _Note:_ You also use 
      [named volumes](https://docs.docker.com/storage/volumes/#create-and-manage-volumes)!
 
+ - `container.ports`  (_Default:_ `[]`)
+ 
+   Given a list of 
+     [port mapping strings](https://docs.docker.com/engine/reference/run/#expose-incoming-ports), 
+   we publish the ports as specified. 
+ 
  - `container.keep_alive` (_Default:_ `15m`)
  
    The duration to keep the container alive for after the last command was run in it.

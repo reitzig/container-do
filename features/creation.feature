@@ -18,6 +18,7 @@ Feature: Container Creation
         # this is not possible; see above TODO
         # And  the container has a volume mount for . at /
         And  the container has no volume mounts
+        And  the container publishes no ports
         And  the command exits with status 0
         And  its output is "root"
 
@@ -55,7 +56,7 @@ Feature: Container Creation
             """
         When container-do is called with `whoami`
         Then a container is started with name test-app-do
-        Then the container has a volume mount for foo1 at /foo
+        And  the container has a volume mount for foo1 at /foo
         And  the container has a volume mount for foo2 at /bar
 
     Scenario: Set Environment Variables
@@ -67,5 +68,15 @@ Feature: Container Creation
             """
         When container-do is called with `whoami`
         Then a container is started with name test-app-do
-        Then the container has an environment variable FOO with value "BAR"
+        And  the container has an environment variable FOO with value "BAR"
         And  the container has an environment variable BAR with value "FOO"
+
+    Scenario: Publish Ports
+        Given the config file also contains
+            """
+            ports = ["8080:80", "4444"]
+            """
+        When container-do is called with `whoami`
+        Then a container is started with name test-app-do
+        Then the container publishes port 80 as 8080
+        And  the container publishes port 4444
