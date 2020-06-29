@@ -153,6 +153,7 @@ Explore some use cases:
  - [Java with Maven](examples/java)
  - [LaTeX](examples/latex)
  - [Node.js](examples/node)
+ - [Webserver](examples/nginx)
 
 
 ## Short ADRs

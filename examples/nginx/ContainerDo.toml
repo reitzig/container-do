@@ -1,0 +1,9 @@
+[container]
+image = "nginx"
+os_flavor = "debian"
+
+name = "container-do-nginx-example"
+work_dir = "/usr/share/nginx/html"
+
+ports = ["8080:80"]
+keep_alive = "15s"
