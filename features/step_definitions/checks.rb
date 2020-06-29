@@ -115,6 +115,17 @@ Then(/^the container has an environment variable ([A-Z_]+) with value "([^"]*)"$
   expect(out.strip).to match(/"#{key}=#{value}"/)
 end
 
+# TODO: If we ever test long-running commands _without_ killing them, add this to the exit/output checks:
+#
+# unless @running_command.nil?
+#   expect(@running_command[:thread].value).to_not be_nil
+#   @run_status = @running_command[:thread].value.exitstatus
+#   @run_output = @running_command[:out].join()
+#   @run_err_out = @running_command[:err].join()
+#   @running_command = nil
+#   @command_just_ran = true
+# end
+
 Then('the command exits with status {int}') do |status|
   expect(@run_status).to eq(status)
 end
@@ -194,4 +205,17 @@ end
 
 And(/^no container was started$/) do
   expect(@containers).to be_empty
+end
+
+Then(/^a command matching \/(.*)\/ is running in the container$/) do |pattern|
+  out, status = Open3.capture2e($docker, "exec", @container, 'ps', '-eo', 'comm=')
+
+  expect(out).to match(/#{Regexp.escape(pattern)}/)
+end
+
+Then(/^no command matching \/(.*)\/ is running in the container$/) do |pattern|
+  pending # TODO: docker doesn't forward signals without -t
+  out, status = Open3.capture2e($docker, "exec", @container, 'ps', '-eo', 'comm=')
+
+  expect(out).to_not match(/#{Regexp.escape(pattern)}/)
 end

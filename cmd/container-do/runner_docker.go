@@ -4,6 +4,7 @@ import (
     "fmt"
     "os"
     "os/exec"
+    "os/signal"
     "path/filepath"
     "strings"
 
@@ -37,12 +38,35 @@ func (d DockerRunner) runDockerCommand(commandAndArguments ...string) ([]byte, e
 
 func (d DockerRunner) runDockerCommandAttached(commandAndArguments ...string) error {
     cmd := exec.Command(d.RunnerExecutable(), commandAndArguments...)
+    zap.L().Sugar().Debugf("Will run command: `%s %s`", cmd.Path, strings.Join(cmd.Args, " "))
+
     cmd.Stdin = os.Stdin
     cmd.Stdout = os.Stdout
     cmd.Stderr = os.Stderr
+    err := cmd.Start()
+    if err != nil {
+        return err
+    }
 
-    zap.L().Sugar().Debugf("Will run command: `%s %s`", cmd.Path, strings.Join(cmd.Args, " "))
-    return cmd.Run()
+    // Forward signals to `docker`:
+    c := make(chan os.Signal, 1)
+    signal.Notify(c, os.Interrupt, os.Kill)
+    go func(){
+        for sig := range c {
+            zap.L().Sugar().Debugf("Forwarding signal '%v' to `%s` (%d).",
+                sig, d.RunnerExecutable(), cmd.Process.Pid)
+            forwardErr := cmd.Process.Signal(sig)
+            if forwardErr != nil {
+                zap.L().Sugar().Warnf("Could not forward signal '%v' to `%s` (%d): %s",
+                    sig, d.RunnerExecutable(), cmd.Process.Pid, forwardErr.Error())
+            }
+        }
+    }()
+
+    err = cmd.Wait()
+    signal.Stop(c)
+
+    return err
 }
 
 // Run this before any command that needs `c.osFlavor` set.

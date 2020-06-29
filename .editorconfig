@@ -8,6 +8,9 @@ indent_size = 4
 trim_trailing_whitespace = true
 insert_final_newline = true
 
+[*.rb]
+indent_size = 2
+
 [*.{yml,yaml}]
 indent_size = 2
 

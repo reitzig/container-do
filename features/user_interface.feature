@@ -67,3 +67,24 @@ Feature: Limited User Interface
         And  environment variable CONTAINER_DO_LOGGING is set to "debug"
         When container-do is called with `whoami`
         Then its error output contains "DEBUG"
+
+    @slow @timing
+    Scenario: Cancel command
+        Given config file for project test-app
+            """
+            [container]
+            image = "ubuntu"
+            mounts = []
+
+            keep_alive = "3s"
+            """
+        When container-do is called with long-running `tail -f /dev/null`
+        Then a container is started with name test-app-do
+        When we wait for 1s
+        Then a command matching /tail/ is running in the container
+        When we send SIGINT to container-do
+        And  wait for 2s
+        Then the container is still running
+        And  no command matching /tail/ is running in the container
+        When we wait for another 2s
+        Then the container is not running anymore

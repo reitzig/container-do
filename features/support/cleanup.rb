@@ -5,7 +5,8 @@ require 'open3'
 World MockProject
 
 AfterStep do |scenario|
-  if @command_just_ran && @run_status != 0
+  if @command_just_ran && (@run_status != 0 || !@run_error.nil?)
+    log("Command run/kill error: #{@run_error}") unless @run_error.nil?
     log("Command Exit Status: #{@run_status}")
     unless @run_output.nil?
       log("Command Standard Output:")
@@ -40,5 +41,5 @@ After do |scenario|
   FileUtils.rm_rf(@temp_dir) unless @temp_dir.nil?
   @containers.each do |c|
     _, _ = Open3.capture2e($docker, "rm", '-f', c)
-  end
+  end unless @containers.nil?
 end
