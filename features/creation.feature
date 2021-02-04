@@ -60,16 +60,19 @@ Feature: Container Creation
         And  the container has a volume mount for foo2 at /bar
 
     Scenario: Set Environment Variables
-        Given the config file also contains
+        Given environment variable SOME_VAR is set to "some value"
+        And the config file also contains
             """
             [container.environment]
             FOO = "BAR"
             BAR = "FOO"
+            VAR = "$SOME_VAR"
             """
         When container-do is called with `whoami`
         Then a container is started with name test-app-do
         And  the container has an environment variable FOO with value "BAR"
         And  the container has an environment variable BAR with value "FOO"
+        And  the container has an environment variable VAR with value "some value"
 
     Scenario: Publish Ports
         Given the config file also contains
