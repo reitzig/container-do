@@ -111,7 +111,17 @@ func main() {
         err = runner.RestartContainer(&config.Container)
         handle(err)
         err = runner.ExecutePredefined(&config.Container, config.ThingsToRun.Setup)
-        handle(err)
+
+        if _, ok := err.(*exec.ExitError); ok {
+            zap.L().Sugar().Infof("Setup of container %s failed; will not be able recover, so killing it.",
+                config.Container.Name)
+            killErr := runner.KillContainer(&config.Container)
+            handle(killErr)
+            handle(err)
+        } else {
+            handle(err)
+        }
+
     } else {
         containerRunning, err := runner.IsContainerRunning(&config.Container)
         handle(err)

@@ -11,6 +11,7 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ### Features
 
  - Kill rogue containers with `--kill` (issue #11)
+ - Kill containers if setup fails (issue #7)
 
 
 ## [1.1.0] - 2020-06-29

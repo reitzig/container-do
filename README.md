@@ -146,6 +146,10 @@ Here is a full list of the optional values:
     
       Set to a list of shell commands run one after the other,
       so long as they are successful.
+      
+   _Note:_ When errors happen during `run.setup`, we can not recover graciously.
+           Therefore, we immediately kill the container so `run.setup` will
+           be retried before the next command.
 
 ### Examples
 

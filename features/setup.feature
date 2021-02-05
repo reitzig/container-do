@@ -71,6 +71,7 @@ Feature: Container Setup & Command pre-/post-processing
             commands = [ "echo 'Do you see me?'; exit 77" ]
 
             [run.before]
+            attach = true
             commands = [ "echo 'Or you don't!'" ]
             """
         When container-do is called with `whoami`
@@ -86,10 +87,11 @@ Feature: Container Setup & Command pre-/post-processing
             commands = [ "echo 'Do you see me?'; exit 77" ]
 
             [run.before]
+            attach = true
             commands = [ "echo 'Or you don't!'" ]
             """
         When container-do is called with `whoami`
-        Then its output is "a"
+        Then its output is ""
         And the command exits with status 77
         And no container was started
 
