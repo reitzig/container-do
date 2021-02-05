@@ -214,7 +214,7 @@ Then(/^a command matching \/(.*)\/ is running in the container$/) do |pattern|
 end
 
 Then(/^no command matching \/(.*)\/ is running in the container$/) do |pattern|
-  pending # TODO: docker doesn't forward signals without -t
+  pending # TODO: docker doesn't forward signals without -t --> issue #6
   out, status = Open3.capture2e($docker, "exec", @container, 'ps', '-eo', 'comm=')
 
   expect(out).to_not match(/#{Regexp.escape(pattern)}/)
