@@ -16,6 +16,7 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ### Fixes
 
  - Avoid redundant `docker start`
+ - Log `run._` properly
 
 
 ## [1.1.0] - 2020-06-29
