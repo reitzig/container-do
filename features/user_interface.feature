@@ -68,6 +68,28 @@ Feature: Limited User Interface
         When container-do is called with `whoami`
         Then its error output contains "DEBUG"
 
+    Scenario: Kill not running container
+        Given config file for project test-app
+            """
+            [container]
+            image = "ubuntu"
+            """
+        When container-do is called with `--kill`
+        Then the command exits with status 0
+        And  no container was started
+
+    Scenario: Kill running container
+        Given config file for project test-app
+            """
+            [container]
+            image = "ubuntu"
+            """
+        When container-do is called with `whoami`
+        Then a container is started with name test-app-do
+        When container-do is called with `--kill`
+        Then the command exits with status 0
+        And  the container is gone
+
     @slow @timing
     Scenario: Cancel command
         Given config file for project test-app
