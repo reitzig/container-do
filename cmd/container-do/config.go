@@ -68,8 +68,12 @@ type thingsToRun struct {
     After  thingToRun
 }
 
-func (t *thingsToRun) asList() []thingToRun {
-    return []thingToRun{t.Setup, t.Before, t.After}
+func (t *thingsToRun) asMap() map[string]thingToRun {
+    return map[string]thingToRun{
+        "at container creation": t.Setup,
+        "before each command": t.Before,
+        "after each command": t.After,
+    }
 }
 
 type Config struct {
@@ -162,9 +166,12 @@ func parseConfig(fileName string) (Config, error) {
         config.Container.Name = strings.ToLower(Base(Dir(absolutePath))) + "-do"
     }
 
-    for _, thingToRun := range config.ThingsToRun.asList() {
-        if thingToRun.ScriptFile != "" && len(thingToRun.Commands) > 0 {
-            zap.L().Sugar().Infof("Will run %s first, then commands!")
+    for label, thingToRun := range config.ThingsToRun.asMap() {
+        if thingToRun.ScriptFile != "" {
+            zap.L().Sugar().Infof("Will run %s: %s", label, thingToRun.ScriptFile)
+        }
+        for _, command := range thingToRun.Commands {
+            zap.L().Sugar().Infof("Will run %s: %s", label, command)
         }
     }
 

@@ -10,12 +10,14 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Features
 
+ - Use host environment variables in `container.environment` (issue #9)
  - Kill rogue containers with `--kill` (issue #11)
- - Kill containers if setup fails (issue #7)
+ - Kill containers if `run.setup` fails (issue #7)
 
 ### Fixes
 
  - Avoid redundant `docker start`
+ - Log `run._` properly
 
 
 ## [1.1.0] - 2020-06-29

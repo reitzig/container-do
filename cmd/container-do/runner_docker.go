@@ -185,6 +185,15 @@ func (d DockerRunner) CreateContainer(c *container) error {
     }
 
     for key, value := range c.Environment {
+        if strings.HasPrefix(value, "$") {
+            if hostValue, isSet := os.LookupEnv(strings.TrimPrefix(value, "$")); isSet {
+                value = hostValue
+            } else {
+                zap.L().Sugar().Warnf("Environment variable '%s' not set; leaving %s empty.", value, key)
+                value = ""
+            }
+        }
+
         args = append(args, "-e", key+"="+value)
     }
 

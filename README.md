@@ -121,7 +121,10 @@ Here is a full list of the optional values:
 
  - `container.environment` (_Default:_ none)
     
-    Set environment variables of the container.
+    Set environment variables of the container.  
+    If a value is of the form `"$VARIABLE_NAME"`,
+    it will be replaced with the value of the thus named environment variable of the _host_,
+    or the empty string if it is not set.
 
  - `run.setup` -- run once after container creation  
    `run.before` -- run once before each command  
