@@ -256,6 +256,53 @@ func (d DockerRunner) ExecutePredefined(c *container, thing thingToRun) error {
     return err
 }
 
+func (d DockerRunner) CopyFilesTo(c *container, thing []thingToCopy) error {
+    for _, filesAndTarget := range thing {
+        zap.L().Sugar().Debugf("Will copy '%s' to '%s'", filesAndTarget.Files, filesAndTarget.Target)
+        files := []string {}
+        for _, fileGlob := range filesAndTarget.Files {
+            filesOfGlob, err := filepath.Glob(fileGlob)
+            if err != nil {
+                return err
+            }
+            files = append(files, filesOfGlob...)
+        }
+
+        switch len(files) {
+            case 0:
+                return nil
+            case 1:
+                // One-to-one copy
+            default:
+                // Copying multiple files into a directory --> make sure it exists!
+                err := d.runDockerCommandAttached("exec", "-w", c.WorkDir, c.Name, "mkdir", "-p", filesAndTarget.Target)
+                if err != nil {
+                    return err
+                }
+        }
+
+        target := fmt.Sprintf("%s:%s/%s", c.Name, c.WorkDir, filesAndTarget.Target)
+        for _, source := range files {
+            err := d.runDockerCommandAttached("cp", source, target)
+            if err != nil {
+                return err
+            }
+        }
+    }
+
+    return nil
+}
+
+func (d DockerRunner) CopyFilesFrom(c *container, thing []thingToCopy) error {
+    for _, filesAndTarget := range thing {
+        foo := filesAndTarget.Target
+        zap.L().Sugar().Error("not yet implemented" + foo)
+        panic("implement me")
+    }
+
+    return nil
+}
+
 func (d DockerRunner) ExecuteCommand(c *container, commandAndParameters []string) error {
     // Make sure container isn't killed while our command is running:
     _ = d.setKeepAliveToken(c, keepAliveIndefinitely)

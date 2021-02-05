@@ -22,6 +22,9 @@ type runnerExec interface {
     RestartContainer(c *container) error
     KillContainer(c *container) error
 
+    CopyFilesTo(c *container, thing []thingToCopy) error
+    CopyFilesFrom(c *container, thing []thingToCopy) error
+
     ExecutePredefined(c *container, thing thingToRun) error
     // Attach and block!
     ExecuteCommand(c *container, commandAndArguments []string) error

@@ -58,6 +58,11 @@ type thingToRun struct {
     Commands   []string
 }
 
+type thingToCopy struct {
+    Files  []string
+    Target string   `toml:"to" default:"."`
+}
+
 func (t *thingToRun) willRunSomething() bool {
     return t.ScriptFile != "" || len(t.Commands) > 0
 }
@@ -66,6 +71,12 @@ type thingsToRun struct {
     Setup  thingToRun
     Before thingToRun
     After  thingToRun
+}
+
+type thingsToCopy struct {
+    Setup  []thingToCopy
+    Before []thingToCopy
+    After  []thingToCopy
 }
 
 func (t *thingsToRun) asMap() map[string]thingToRun {
@@ -81,7 +92,8 @@ type Config struct {
     // TODO: allow setting executable explicitly?
     Container container
 
-    ThingsToRun thingsToRun `toml:"run"`
+    ThingsToRun  thingsToRun  `toml:"run"`
+    ThingsToCopy thingsToCopy `toml:"copy"`
 }
 
 const ConfigFileTemplate = `
@@ -100,11 +112,19 @@ const ConfigFileTemplate = `
 [container.environment]
 # KEY = "value"
 
+# [[copy.setup]]
+# files = []
+# to = "."
+
 [run.setup]
 # attach      = false
 # user        = ""
 # script_file = ""
 # commands    = []
+
+# [[copy.before]]
+# files = []
+# to = "."
 
 [run.before]
 # attach      = false
@@ -117,6 +137,10 @@ const ConfigFileTemplate = `
 # user        = ""
 # script_file = ""
 # commands    = []
+
+# [[copy.after]]
+# files = []
+# to = "."
 `
 
 type ConfigError struct {

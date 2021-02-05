@@ -110,6 +110,8 @@ func main() {
         handle(err)
         err = runner.RestartContainer(&config.Container)
         handle(err)
+        err = runner.CopyFilesTo(&config.Container, config.ThingsToCopy.Setup)
+        handle(err)
         err = runner.ExecutePredefined(&config.Container, config.ThingsToRun.Setup)
 
         if _, ok := err.(*exec.ExitError); ok {
@@ -132,10 +134,14 @@ func main() {
         }
     }
 
+    err = runner.CopyFilesTo(&config.Container, config.ThingsToCopy.Before)
+    handle(err)
     err = runner.ExecutePredefined(&config.Container, config.ThingsToRun.Before)
     handle(err)
     err = runner.ExecuteCommand(&config.Container, os.Args[1:])
     handle(err) // TODO: Is aborting here what we want, usually?
     err = runner.ExecutePredefined(&config.Container, config.ThingsToRun.After)
+    handle(err)
+    err = runner.CopyFilesFrom(&config.Container, config.ThingsToCopy.After)
     handle(err)
 }

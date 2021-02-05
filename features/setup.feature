@@ -215,11 +215,10 @@ Feature: Container Setup & Command pre-/post-processing
 
             [[copy.setup]]
             files = ["ham"]
-            to = "."
 
             [run.setup]
             commands = [
-                "cd spam; for f in *; do mv ${f} ${f#spam_}"
+                "cd spam; for f in *; do mv ${f} ${f#spam_}; done"
             ]
             """
         And the project contains a file spam_a with content
@@ -234,15 +233,20 @@ Feature: Container Setup & Command pre-/post-processing
             """
             C
             """
-        When container-do is called with `ls -1; ls -1 spam; cat ham`
+        When container-do is called with `ls -1`
         Then the command output is
             """
             ham
-            spam/
+            spam
+            """
+        When container-do is called with `ls -1 spam`
+        Then the command output is
+            """
             a
             b
-            C
             """
+        When container-do is called with `cat ham`
+        Then the command output is "C"
 
     Scenario: Copy files before command
         Given the config file also contains
@@ -261,11 +265,10 @@ Feature: Container Setup & Command pre-/post-processing
 
             [[copy.before]]
             files = ["ham"]
-            to = "."
 
             [run.before]
             commands = [
-                "cd spam; for f in *; do mv ${f} ${f#spam_}"
+                "cd spam; for f in *; do mv ${f} ${f#spam_}; done"
             ]
             """
         And the project contains a file spam_a with content
@@ -280,16 +283,20 @@ Feature: Container Setup & Command pre-/post-processing
             """
             C
             """
-        When container-do is called with `ls -1; ls -1 spam; cat ham`
+        When container-do is called with `ls -1`
         Then the command output is
             """
-
             ham
-            spam/
+            spam
+            """
+        When container-do is called with `ls -1 spam`
+        Then the command output is
+            """
             a
             b
-            C
             """
+        When container-do is called with `cat ham`
+        Then the command output is "C"
 
     Scenario: Copy files after command
         Given the config file also contains
@@ -325,3 +332,26 @@ Feature: Container Setup & Command pre-/post-processing
             """
             Hidden but there.
             """
+
+    Scenario: Copy missing file into container
+        Given the config file also contains
+            """
+            mounts = []
+
+            [[copy.setup]]
+            files = ["does_not_exist"]
+            """
+        When container-do is called with `whoami`
+        Then the command exits with status 0
+        # TODO: This has potential for silent errors, but might also be useful ("copy if exists") -- trade off!
+
+    Scenario: Copy missing file from container
+        Given the config file also contains
+            """
+            mounts = []
+
+            [[copy.after]]
+            files = ["does_not_exist"]
+            """
+        When container-do is called with `whoami`
+        Then the command exits with status 0
