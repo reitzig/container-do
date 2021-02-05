@@ -213,6 +213,11 @@ func (d DockerRunner) RestartContainer(c *container) error {
     return err
 }
 
+func (d DockerRunner) KillContainer(c *container) error {
+    _, err := d.runDockerCommand("kill", c.Name)
+    return err
+}
+
 func (d DockerRunner) setKeepAliveToken(c *container, value string) error {
     _, err := d.runDockerCommand("exec", c.Name, "sh", "-c", setKeepAliveTokenScript(value))
     return err
