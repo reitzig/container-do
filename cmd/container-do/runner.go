@@ -20,6 +20,7 @@ type runnerExec interface {
     IsContainerRunning(c *container) (bool, error)
     CreateContainer(c *container) error
     RestartContainer(c *container) error
+    KillContainer(c *container) error
 
     ExecutePredefined(c *container, thing thingToRun) error
     // Attach and block!

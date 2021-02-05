@@ -72,6 +72,7 @@ func main() {
         handle(UsageError{Message: "No command given"})
     }
 
+    requestedContainerKill := false
     switch os.Args[1] {
         case "--help":
             fmt.Printf(usageMessage, Version, OsArch, Build, doFile, doFile)
@@ -84,6 +85,9 @@ func main() {
                 zap.L().Sugar().Infof("Created new %s from template.", doFile)
             }
             os.Exit(0)
+        case "--kill":
+            // Need to parse config before we can act on this!
+            requestedContainerKill = true
     }
 
     config, err := parseConfig(doFile)
@@ -93,7 +97,13 @@ func main() {
     containerExists, err := runner.DoesContainerExist(&config.Container)
     handle(err)
 
-    if !containerExists {
+    if requestedContainerKill {
+        if containerExists {
+            err = runner.KillContainer(&config.Container)
+            handle(err)
+        }
+        os.Exit(0)
+    } else if !containerExists {
         // TODO: If we don't already have the image, we might block here for a while without input
         //       Pull explicitly and attach?
         err = runner.CreateContainer(&config.Container)

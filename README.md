@@ -44,10 +44,11 @@ _Prerequisites:_
  - Docker installed and user can run `docker`.
  - Container has `sh`.
 
-There are two special commands:
+There are three special commands:
 
  - `container-do --help` -- print usage instructions.
  - `container-do --init` -- create config file (template).
+ - `container-do --kill` -- kill the configured container (if it exists).
 
 All other calls will be passed directly to the configured container.
 For instance:
