@@ -7,6 +7,8 @@ container-do mvn test
 container-do mvn exec:java -Dexec.mainClass="my.app.App"
 ```
 
+You can play around with configuring Maven by setting environment variable `MAVEN_OPTS` in your shell!
+
 _Note:_ By its nature, Maven downloads quite a few dependency on its first run,
 here triggered in `run.setup`.
 You may want to follow the 

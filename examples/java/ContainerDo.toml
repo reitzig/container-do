@@ -5,6 +5,9 @@ os_flavor = "debian"
 name = "container-do-java-example"
 work_dir = "/app"
 
+[container.environment]
+MAVEN_OPTS = "$MAVEN_OPTS"
+
 [run.setup]
 attach = true
 commands    = [

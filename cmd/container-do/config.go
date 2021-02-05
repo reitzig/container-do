@@ -168,10 +168,10 @@ func parseConfig(fileName string) (Config, error) {
 
     for label, thingToRun := range config.ThingsToRun.asMap() {
         if thingToRun.ScriptFile != "" {
-            zap.L().Sugar().Infof("Will run %s: %s", label, thingToRun.ScriptFile)
+            zap.L().Sugar().Debugf("Will run %s: %s", label, thingToRun.ScriptFile)
         }
         for _, command := range thingToRun.Commands {
-            zap.L().Sugar().Infof("Will run %s: %s", label, command)
+            zap.L().Sugar().Debugf("Will run %s: %s", label, command)
         }
     }
 
