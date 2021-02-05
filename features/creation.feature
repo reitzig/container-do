@@ -67,12 +67,14 @@ Feature: Container Creation
             FOO = "BAR"
             BAR = "FOO"
             VAR = "$SOME_VAR"
+            NOP = "$OTHER_VAR"
             """
         When container-do is called with `whoami`
         Then a container is started with name test-app-do
         And  the container has an environment variable FOO with value "BAR"
         And  the container has an environment variable BAR with value "FOO"
         And  the container has an environment variable VAR with value "some value"
+        And  the container has an environment variable NOP with value ""
 
     Scenario: Publish Ports
         Given the config file also contains
