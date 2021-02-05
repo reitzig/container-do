@@ -203,3 +203,125 @@ Feature: Container Setup & Command pre-/post-processing
         Then the command output is "0,2,1"
         When container-do is called with `cat /witnesses`
         Then the command output is "0,3,2"
+
+    Scenario: Copy files during setup
+        Given the config file also contains
+            """
+            mounts = []
+
+            [[copy.setup]]
+            files = ["spam_*"]
+            to = "spam"
+
+            [[copy.setup]]
+            files = ["ham"]
+            to = "."
+
+            [run.setup]
+            commands = [
+                "cd spam; for f in *; do mv ${f} ${f#spam_}"
+            ]
+            """
+        And the project contains a file spam_a with content
+            """
+            A
+            """
+        And the project contains a file spam_b with content
+            """
+            B
+            """
+        And the project contains a file ham with content
+            """
+            C
+            """
+        When container-do is called with `ls -1; ls -1 spam; cat ham`
+        Then the command output is
+            """
+            ham
+            spam/
+            a
+            b
+            C
+            """
+
+    Scenario: Copy files before command
+        Given the config file also contains
+            """
+            mounts = []
+
+            [run.setup]
+            attach = true
+            commands = [
+                "ls"
+            ]
+
+            [[copy.before]]
+            files = ["spam_*"]
+            to = "spam"
+
+            [[copy.before]]
+            files = ["ham"]
+            to = "."
+
+            [run.before]
+            commands = [
+                "cd spam; for f in *; do mv ${f} ${f#spam_}"
+            ]
+            """
+        And the project contains a file spam_a with content
+            """
+            A
+            """
+        And the project contains a file spam_b with content
+            """
+            B
+            """
+        And the project contains a file ham with content
+            """
+            C
+            """
+        When container-do is called with `ls -1; ls -1 spam; cat ham`
+        Then the command output is
+            """
+
+            ham
+            spam/
+            a
+            b
+            C
+            """
+
+    Scenario: Copy files after command
+        Given the config file also contains
+            """
+            mounts = []
+
+            [run.setup]
+            commands = [
+                "mkdir -p outputs",
+                "echo 'Hidden but there.' > outputs/more"
+            ]
+
+            [run.after]
+            commands = [
+                "echo 'And this, too!' >> output"
+            ]
+
+            [[copy.after]]
+            files = ["output"]
+            to = "main_output"
+
+            [[copy.after]]
+            files = ["outputs/*"]
+            to = "more_outputs"
+            """
+        When container-do is called with `echo 'We see this?' > output`
+        Then file main_output now contains
+            """
+            We see this?
+            And this, too!
+            """
+        And file more_outputs/more now contains
+            """
+            Hidden but there.
+            """
