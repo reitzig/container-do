@@ -63,6 +63,38 @@ Feature: Container Setup & Command pre-/post-processing
         When container-do is called with `whoami`
         Then its output contains "Do you see me?"
 
+    Scenario: Setup fails with attach
+        Given the config file also contains
+            """
+            [run.setup]
+            attach = true
+            commands = [ "echo 'Do you see me?'; exit 77" ]
+
+            [run.before]
+            attach = true
+            commands = [ "echo 'Or you don't!'" ]
+            """
+        When container-do is called with `whoami`
+        Then its output is "Do you see me?"
+        And the command exits with status 77
+        And no container was started
+
+    Scenario: Setup fails without attach
+        Given the config file also contains
+            """
+            [run.setup]
+            attach = false
+            commands = [ "echo 'Do you see me?'; exit 77" ]
+
+            [run.before]
+            attach = true
+            commands = [ "echo 'Or you don't!'" ]
+            """
+        When container-do is called with `whoami`
+        Then its output is ""
+        And the command exits with status 77
+        And no container was started
+
     # TODO: Test container doesn't have a non-root user yet.
     @pending
     Scenario Outline: Setup as user
