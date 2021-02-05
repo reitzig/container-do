@@ -194,17 +194,7 @@ func (d DockerRunner) CreateContainer(c *container) error {
     _, err = d.runDockerCommand(args...)
     // TODO: avoid mishaps by storing container ID and checking for conflicts?
     //       --> if we do that, default container name can be dropped (let runner do its thing)
-    if err != nil {
-        return err
-    }
 
-    err = d.RestartContainer(c)
-    if err != nil {
-        return err
-    }
-
-    // Run requested setup
-    // TODO: run setup, if any; add -w if necessary
     return err
 }
 
