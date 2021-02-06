@@ -38,7 +38,7 @@ func (d DockerRunner) runDockerCommand(commandAndArguments ...string) ([]byte, e
 
 func (d DockerRunner) runDockerCommandAttached(commandAndArguments ...string) error {
     cmd := exec.Command(d.RunnerExecutable(), commandAndArguments...)
-    zap.L().Sugar().Debugf("Will run command: `%s %s`", cmd.Path, strings.Join(cmd.Args, " "))
+    zap.L().Sugar().Debugf("Will run command: `%s`", strings.Join(cmd.Args, " "))
 
     cmd.Stdin = os.Stdin
     cmd.Stdout = os.Stdout
@@ -51,7 +51,7 @@ func (d DockerRunner) runDockerCommandAttached(commandAndArguments ...string) er
     // Forward signals to `docker`:
     c := make(chan os.Signal, 1)
     signal.Notify(c, os.Interrupt, os.Kill)
-    go func(){
+    go func() {
         for sig := range c {
             zap.L().Sugar().Debugf("Forwarding signal '%v' to `%s` (%d).",
                 sig, d.RunnerExecutable(), cmd.Process.Pid)
@@ -73,7 +73,7 @@ func (d DockerRunner) runDockerCommandAttached(commandAndArguments ...string) er
 func (d DockerRunner) DetermineOsFlavor(c *container) error {
     if c.osFlavor == "" {
         if c.RawOsFlavor == "" {
-            out, err := d.runDockerCommand( "run", "--rm", c.Image, "cat", "/etc/os-release")
+            out, err := d.runDockerCommand("run", "--rm", c.Image, "cat", "/etc/os-release")
             if err != nil {
                 return err
             }
@@ -98,7 +98,7 @@ func (d DockerRunner) DetermineOsFlavor(c *container) error {
 }
 
 func (d DockerRunner) DoesContainerExist(c *container) (bool, error) {
-    out, err := d.runDockerCommand( "ps", "--all", "--format", "{{.Names}}")
+    out, err := d.runDockerCommand("ps", "--all", "--format", "{{.Names}}")
     if err != nil {
         return false, err
     }
@@ -108,7 +108,7 @@ func (d DockerRunner) DoesContainerExist(c *container) (bool, error) {
 }
 
 func (d DockerRunner) IsContainerRunning(c *container) (bool, error) {
-    out, err := d.runDockerCommand( "inspect", "--format", "{{.State.Running}}", c.Name)
+    out, err := d.runDockerCommand("inspect", "--format", "{{.State.Running}}", c.Name)
     if err != nil {
         return false, err
     }
@@ -259,7 +259,8 @@ func (d DockerRunner) ExecutePredefined(c *container, thing thingToRun) error {
 func (d DockerRunner) CopyFilesTo(c *container, thing []thingToCopy) error {
     for _, filesAndTarget := range thing {
         zap.L().Sugar().Debugf("Will copy '%s' to '%s'", filesAndTarget.Files, filesAndTarget.Target)
-        files := []string {}
+        // `docker cp` doesn't expand globs, so we have to do it ourselves.
+        files := []string{}
         for _, fileGlob := range filesAndTarget.Files {
             filesOfGlob, err := filepath.Glob(fileGlob)
             if err != nil {
@@ -267,21 +268,27 @@ func (d DockerRunner) CopyFilesTo(c *container, thing []thingToCopy) error {
             }
             files = append(files, filesOfGlob...)
         }
+        zap.L().Sugar().Debugf("Files to copy: %s", files)
 
-        switch len(files) {
-            case 0:
-                return nil
-            case 1:
-                // One-to-one copy
-            default:
-                // Copying multiple files into a directory --> make sure it exists!
-                err := d.runDockerCommandAttached("exec", "-w", c.WorkDir, c.Name, "mkdir", "-p", filesAndTarget.Target)
-                if err != nil {
-                    return err
-                }
+        if len(files) == 0 {
+            return nil
+        } else if len(files) > 1 || strings.HasSuffix(filesAndTarget.Target, "/") {
+            // Copying files into a directory --> make sure it exists!
+            zap.L().Sugar().Debugf("Creating target directory: %s", filesAndTarget.Target)
+            err := d.runDockerCommandAttached("exec", "-w", c.WorkDir, c.Name, "mkdir", "-p", filesAndTarget.Target)
+            if err != nil {
+                return err
+            }
         }
 
-        target := fmt.Sprintf("%s:%s/%s", c.Name, c.WorkDir, filesAndTarget.Target)
+        var target string
+        if strings.HasPrefix(filesAndTarget.Target, "/") {
+            // Absolute path given
+            target = fmt.Sprintf("%s:%s", c.Name, filesAndTarget.Target)
+        } else {
+            // Relative path given; add working directory to get absolute path
+            target = fmt.Sprintf("%s:%s/%s", c.Name, c.WorkDir, filesAndTarget.Target)
+        }
         for _, source := range files {
             err := d.runDockerCommandAttached("cp", source, target)
             if err != nil {
@@ -295,9 +302,50 @@ func (d DockerRunner) CopyFilesTo(c *container, thing []thingToCopy) error {
 
 func (d DockerRunner) CopyFilesFrom(c *container, thing []thingToCopy) error {
     for _, filesAndTarget := range thing {
-        foo := filesAndTarget.Target
-        zap.L().Sugar().Error("not yet implemented" + foo)
-        panic("implement me")
+        zap.L().Sugar().Debugf("Will copy '%s' to '%s'", filesAndTarget.Files, filesAndTarget.Target)
+        // `docker cp` doesn't expand globs, so we have to do it ourselves.
+        // We want the result to be equivalent to filepath.Glob above, so drop missing files as well.
+        // The for loop in sh doesn't expand globs if the given values are quoted, so we have to escape first.
+        escapedFileGlobs := ""
+        for _, fileGlob := range filesAndTarget.Files {
+            escapedFileGlobs += " " + strings.ReplaceAll(fileGlob, " ", "\\ ")
+        }
+        globExpandingLoop := fmt.Sprintf("for f in %s; do if [ -e \"$f\" ]; then echo $f; fi done", escapedFileGlobs)
+        output, err := d.runDockerCommand("exec", "-w", c.WorkDir, c.Name, "sh", "-c", globExpandingLoop)
+        if err != nil {
+            return err
+        }
+
+        files := filter(
+            strings.Split(strings.TrimSpace(string(output)), "\n"),
+            func(s string) bool { return strings.TrimSpace(s) != "" },
+        )
+        zap.L().Sugar().Debugf("Files to copy: %s", files)
+
+        if len(files) == 0 {
+            return nil
+        } else if len(files) > 1 || strings.HasSuffix(filesAndTarget.Target, "/") {
+            // Copying files into a directory --> make sure it exists!
+            zap.L().Sugar().Debugf("Creating target directory: %s", filesAndTarget.Target)
+            err := os.MkdirAll(filesAndTarget.Target, os.ModeDir|os.FileMode(0775))
+            if err != nil {
+                return err
+            }
+        }
+
+        for _, source := range files {
+            if strings.HasPrefix(source, "/") {
+                // Absolute path given
+                source = fmt.Sprintf("%s:%s", c.Name, source)
+            } else {
+                // Relative path given; add working directory to get absolute path
+                source = fmt.Sprintf("%s:%s/%s", c.Name, c.WorkDir, source)
+            }
+            err := d.runDockerCommandAttached("cp", source, filesAndTarget.Target)
+            if err != nil {
+                return err
+            }
+        }
     }
 
     return nil

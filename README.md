@@ -100,7 +100,7 @@ Here is a full list of the optional values:
      [Docker `--volume` syntax](https://docs.docker.com/storage/bind-mounts/);
    unlike `docker`, we will resolve relative host paths.
    
-   _Note:_ You also use 
+   _Note:_ You can also use 
      [named volumes](https://docs.docker.com/storage/volumes/#create-and-manage-volumes)!
 
  - `container.ports`  (_Default:_ `[]`)
@@ -153,6 +153,29 @@ Here is a full list of the optional values:
    _Note:_ When errors happen during `run.setup`, we can not recover graciously.
            Therefore, we immediately kill the container so `run.setup` will
            be retried before the next command.
+
+ - `copy.setup` -- copy files _into_ the container after its creation, but before `run.setup`.  
+   `copy.before` -- copy files _into_ the container before each command, and before `run.before`.    
+   `copy.after` -- copy files _out_ of the container after each (successful) command, and after `run.after`.
+   
+   _Note:_ Each of these can occur multiple times; include them as `[[copy.setup]]`.
+   
+    - `copy._.files` (_Default:_ none)
+      
+      A list of file names and/or [glob strings](https://en.wikipedia.org/wiki/Glob_(programming));
+      all matching files will be copied.
+      Directories will be copied recursively.
+      
+    - `copy._.to` (_Default:_ `container.work_dir` / `.`)
+      
+      Name of the target file or directory.
+      The target will be a directory unless there is a single source file _and_ 
+      the target file name does not end in `/`.
+      If the target directory does not exist, it will be created.
+
+   Relative paths are relative to the working directory (for `copy.setup`, `copy.before`) resp.
+   `container.work_dir` (for `copy.after`).
+   
 
 ### Examples
 

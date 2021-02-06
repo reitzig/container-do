@@ -6,11 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
-## [1.2.0] - upcoming
+## [1.2.0] - 2021-02-06
 
 ### Added
 
- - Copy files to and from the container during setup, before each command, and after each command (issue #12)
+ - Copy files to the container during setup and before each command (issue #12)
+ - Copy files from the container after each command (issue #12)
  - Use host environment variables in `container.environment` (issue #9)
  - Kill rogue containers with `--kill` (issue #11)
  - Kill containers if `run.setup` fails (issue #7)

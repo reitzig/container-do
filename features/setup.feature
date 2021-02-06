@@ -309,21 +309,27 @@ Feature: Container Setup & Command pre-/post-processing
                 "echo 'Hidden but there.' > outputs/more"
             ]
 
+            [run.before]
+            commands = [
+                "echo 'We see this?' > echoed"
+            ]
+
             [run.after]
             commands = [
-                "echo 'And this, too!' >> output"
+                "echo 'And this, too!' >> echoed"
             ]
 
             [[copy.after]]
-            files = ["output"]
+            files = ["echoed"]
             to = "main_output"
 
             [[copy.after]]
             files = ["outputs/*"]
-            to = "more_outputs"
+            to = "more_outputs/"
             """
-        When container-do is called with `echo 'We see this?' > output`
-        Then file main_output now contains
+        When container-do is called with `cat echoed`
+        Then the command output is "We see this?"
+        And file main_output now contains
             """
             We see this?
             And this, too!

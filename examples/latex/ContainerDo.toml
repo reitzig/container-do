@@ -6,8 +6,7 @@ name = "container-do-latex-example"
 work_dir = "/work/tmp"
 
 mounts = [
-    ".:/work/src:ro",
-    "./out:/work/out"
+    ".:/work/src:ro"
 ]
 keep_alive = "15m"
 
@@ -24,7 +23,6 @@ commands = [
     "cp -rf /work/src/* ./"
 ]
 
-[run.after]
-commands = [
-    "cp *.pdf *.log /work/out/ | true"
-]
+[[copy.after]]
+files = ["*.pdf", "*.log"]
+to = "out"
