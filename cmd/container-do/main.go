@@ -29,6 +29,10 @@ Usage:  container-do --help
             Create a template configuration file %s,
             unless that file already exists.
 
+        container-do --kill
+            If it exists, kill the container specified
+            in %s.
+
         container-do COMMAND [ARGUMENT...]
             Run the given command in a container as
             specified in %s.
@@ -75,7 +79,7 @@ func main() {
     requestedContainerKill := false
     switch os.Args[1] {
         case "--help":
-            fmt.Printf(usageMessage, Version, OsArch, Build, doFile, doFile)
+            fmt.Printf(usageMessage, Version, OsArch, Build, doFile, doFile, doFile)
             os.Exit(0)
         case "--init":
             if fileExists(doFile) {
