@@ -6,27 +6,34 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
-## [1.2.0] - upcoming
+## [1.2.0] - 2021-02-06
 
-### Features
+### Added
 
+ - Copy files to the container during setup and before each command (issue #12)
+ - Copy files from the container after each command (issue #12)
  - Use host environment variables in `container.environment` (issue #9)
  - Kill rogue containers with `--kill` (issue #11)
  - Kill containers if `run.setup` fails (issue #7)
 
-### Fixes
+### Fixed
 
  - Avoid redundant `docker start`
  - Log `run._` properly
 
+### Housekeeping
+
+ - Compile with Go 1.15
+ - Update dependencies
+
 
 ## [1.1.0] - 2020-06-29
 
-### Features
+### Added
 
  - Configure published ports ([Example](examples/nginx))
  
-### Fixes
+### Fixed
 
  - Partial fix for cancelling commands (issue #6):
    - keep-alive token is reset (so the container will stop as configured)

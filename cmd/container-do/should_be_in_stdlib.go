@@ -24,6 +24,15 @@ func firstMatchInString(value string, candidates []string) (string, bool) {
     return "", false
 }
 
+func filter(list []string, predicate func(string) bool) (ret []string) {
+    for _, s := range list {
+        if predicate(s) {
+            ret = append(ret, s)
+        }
+    }
+    return
+}
+
 func fileExists(filename string) bool {
     _, err := os.Stat(filename)
     return ! os.IsNotExist(err)

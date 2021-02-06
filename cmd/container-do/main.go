@@ -29,6 +29,10 @@ Usage:  container-do --help
             Create a template configuration file %s,
             unless that file already exists.
 
+        container-do --kill
+            If it exists, kill the container specified
+            in %s.
+
         container-do COMMAND [ARGUMENT...]
             Run the given command in a container as
             specified in %s.
@@ -75,7 +79,7 @@ func main() {
     requestedContainerKill := false
     switch os.Args[1] {
         case "--help":
-            fmt.Printf(usageMessage, Version, OsArch, Build, doFile, doFile)
+            fmt.Printf(usageMessage, Version, OsArch, Build, doFile, doFile, doFile)
             os.Exit(0)
         case "--init":
             if fileExists(doFile) {
@@ -110,6 +114,8 @@ func main() {
         handle(err)
         err = runner.RestartContainer(&config.Container)
         handle(err)
+        err = runner.CopyFilesTo(&config.Container, config.ThingsToCopy.Setup)
+        handle(err)
         err = runner.ExecutePredefined(&config.Container, config.ThingsToRun.Setup)
 
         if _, ok := err.(*exec.ExitError); ok {
@@ -132,10 +138,14 @@ func main() {
         }
     }
 
+    err = runner.CopyFilesTo(&config.Container, config.ThingsToCopy.Before)
+    handle(err)
     err = runner.ExecutePredefined(&config.Container, config.ThingsToRun.Before)
     handle(err)
     err = runner.ExecuteCommand(&config.Container, os.Args[1:])
     handle(err) // TODO: Is aborting here what we want, usually?
     err = runner.ExecutePredefined(&config.Container, config.ThingsToRun.After)
+    handle(err)
+    err = runner.CopyFilesFrom(&config.Container, config.ThingsToCopy.After)
     handle(err)
 }

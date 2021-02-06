@@ -134,6 +134,10 @@ Then("(the )command/its (standard )output is {string}") do |output|
   expect(@run_output.strip).to eq(output)
 end
 
+Then("(the )command/its (standard )output is") do |output|
+  expect(@run_output.strip).to eq(output)
+end
+
 Then("(the )command/its (standard )output contains {string}") do |output|
   expect(@run_output).to match(output)
 end
@@ -174,7 +178,8 @@ Then("the container is( still) there/present") do
 end
 
 
-And(/^file ([^\s]+) (?:still )?contains$/) do |file_name, expected_content|
+And(/^file ([^\s]+) (?:still |now )?contains$/) do |file_name, expected_content|
+  expect(File).to exist(file_name)
   actual_content = File.read(file_name)
   expect(actual_content.strip).to eq(expected_content.strip)
 end
