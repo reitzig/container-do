@@ -53,6 +53,17 @@ func handle(err error) {
     }
 }
 
+func handleSetupError(err error, onExitError func()error) {
+    if _, ok := err.(*exec.ExitError); ok {
+        zap.L().Info("Container setup failed; will not be able recover, so killing it.")
+        killErr := onExitError()
+        handle(killErr)
+        handle(err)
+    } else {
+        handle(err)
+    }
+}
+
 // TODO: replace with CLI parser and its error
 type UsageError struct {
     Message string
@@ -115,19 +126,9 @@ func main() {
         err = runner.RestartContainer(&config.Container)
         handle(err)
         err = runner.CopyFilesTo(&config.Container, config.ThingsToCopy.Setup)
-        handle(err)
+        handleSetupError(err, func() error { return runner.KillContainer(&config.Container) })
         err = runner.ExecutePredefined(&config.Container, config.ThingsToRun.Setup)
-
-        if _, ok := err.(*exec.ExitError); ok {
-            zap.L().Sugar().Infof("Setup of container %s failed; will not be able recover, so killing it.",
-                config.Container.Name)
-            killErr := runner.KillContainer(&config.Container)
-            handle(killErr)
-            handle(err)
-        } else {
-            handle(err)
-        }
-
+        handleSetupError(err, func() error { return runner.KillContainer(&config.Container) })
     } else {
         containerRunning, err := runner.IsContainerRunning(&config.Container)
         handle(err)

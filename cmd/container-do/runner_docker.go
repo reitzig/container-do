@@ -134,6 +134,16 @@ func (d DockerRunner) CreateContainer(c *container) error {
 
     if c.WorkDir != "" {
         args = append(args, "--workdir", c.WorkDir)
+    } else {
+        out, err := d.runDockerCommand("inspect", "--format={{.ContainerConfig.WorkingDir}}", c.Image)
+        if err != nil {
+            return err
+        }
+        if wd := strings.TrimSpace(string(out)); wd == "" {
+            c.WorkDir = "/"
+        } else {
+            c.WorkDir = wd
+        }
     }
 
     if c.Mounts == nil {
@@ -146,25 +156,12 @@ func (d DockerRunner) CreateContainer(c *container) error {
             return err
         }
 
-        containerWorkDir := c.WorkDir
-        if c.WorkDir == "" {
-            out, err := d.runDockerCommand("inspect", "--format={{.ContainerConfig.WorkingDir}}", c.Image)
-            if err != nil {
-                return err
-            }
-            if wd := strings.TrimSpace(string(out)); wd == "" {
-                containerWorkDir = "/"
-            } else {
-                containerWorkDir = wd
-            }
-        }
-
-        if containerWorkDir == "/" {
+        if c.WorkDir == "/" {
             // Forbidden by Docker!
             zap.L().Sugar().Warn("Can not set up default bind-mount to container root; " +
                 "specify other working directory or declare valid mounts explicitly!")
         } else {
-            bindMount := fmt.Sprintf("%s:%s", hostWorkDir, containerWorkDir)
+            bindMount := fmt.Sprintf("%s:%s", hostWorkDir, c.WorkDir)
             zap.L().Sugar().Debugf("Using default bind-mount '%s'", bindMount)
             args = append(args, "--volume", bindMount)
         }
@@ -271,26 +268,37 @@ func (d DockerRunner) CopyFilesTo(c *container, thing []thingToCopy) error {
         zap.L().Sugar().Debugf("Files to copy: %s", files)
 
         if len(files) == 0 {
-            return nil
-        } else if len(files) > 1 || strings.HasSuffix(filesAndTarget.Target, "/") {
-            // Copying files into a directory --> make sure it exists!
-            zap.L().Sugar().Debugf("Creating target directory: %s", filesAndTarget.Target)
-            err := d.runDockerCommandAttached("exec", "-w", c.WorkDir, c.Name, "mkdir", "-p", filesAndTarget.Target)
-            if err != nil {
-                return err
-            }
+            continue
         }
 
         var target string
         if strings.HasPrefix(filesAndTarget.Target, "/") {
             // Absolute path given
-            target = fmt.Sprintf("%s:%s", c.Name, filesAndTarget.Target)
+            target = filesAndTarget.Target
         } else {
             // Relative path given; add working directory to get absolute path
-            target = fmt.Sprintf("%s:%s/%s", c.Name, c.WorkDir, filesAndTarget.Target)
+            target = fmt.Sprintf("%s/%s", c.WorkDir, filesAndTarget.Target)
         }
+
+        if len(files) > 1 || strings.HasSuffix(target, "/") {
+            // Copying files into a directory --> make sure it exists!
+            zap.L().Sugar().Debugf("Creating target directory: %s", target)
+            err := d.runDockerCommandAttached("exec", c.Name, "mkdir", "-p", target)
+            if err != nil {
+                return err
+            }
+        } else {
+            // Copying a single file or directory --> make sure its parent exists!
+            parentDir := filepath.Dir(target)
+            zap.L().Sugar().Debugf("Creating target directory: %s", parentDir)
+            err := d.runDockerCommandAttached("exec", c.Name, "mkdir", "-p", parentDir)
+            if err != nil {
+                return err
+            }
+        }
+
         for _, source := range files {
-            err := d.runDockerCommandAttached("cp", source, target)
+            err := d.runDockerCommandAttached("cp", source, fmt.Sprintf("%s:%s", c.Name, target))
             if err != nil {
                 return err
             }
@@ -323,11 +331,19 @@ func (d DockerRunner) CopyFilesFrom(c *container, thing []thingToCopy) error {
         zap.L().Sugar().Debugf("Files to copy: %s", files)
 
         if len(files) == 0 {
-            return nil
+            continue
         } else if len(files) > 1 || strings.HasSuffix(filesAndTarget.Target, "/") {
             // Copying files into a directory --> make sure it exists!
             zap.L().Sugar().Debugf("Creating target directory: %s", filesAndTarget.Target)
             err := os.MkdirAll(filesAndTarget.Target, os.ModeDir|os.FileMode(0775))
+            if err != nil {
+                return err
+            }
+        } else {
+            // Copying a single file or directory --> make sure its parent exists!
+            parentDir := filepath.Dir(filesAndTarget.Target)
+            zap.L().Sugar().Debugf("Creating target directory: %s", parentDir)
+            err := os.MkdirAll(parentDir, os.ModeDir|os.FileMode(0775))
             if err != nil {
                 return err
             }
