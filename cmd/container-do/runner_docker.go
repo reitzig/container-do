@@ -275,6 +275,7 @@ func (d DockerRunner) CopyFilesTo(c *container, thing []thingToCopy) error {
         } else if len(files) > 1 || strings.HasSuffix(filesAndTarget.Target, "/") {
             // Copying files into a directory --> make sure it exists!
             zap.L().Sugar().Debugf("Creating target directory: %s", filesAndTarget.Target)
+            // TODO: c.WorkDir may not be set! --> issue #
             err := d.runDockerCommandAttached("exec", "-w", c.WorkDir, c.Name, "mkdir", "-p", filesAndTarget.Target)
             if err != nil {
                 return err
