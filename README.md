@@ -149,10 +149,6 @@ Here is a full list of the optional values:
     
       Set to a list of shell commands run one after the other,
       so long as they are successful.
-      
-   _Note:_ When errors happen during `run.setup`, we can not recover graciously.
-           Therefore, we immediately kill the container so `run.setup` will
-           be retried before the next command.
 
  - `copy.setup` -- copy files _into_ the container after its creation, but before `run.setup`.  
    `copy.before` -- copy files _into_ the container before each command, and before `run.before`.    
@@ -175,6 +171,9 @@ Here is a full list of the optional values:
 
    Relative paths are relative to the working directory (for `copy.setup`, `copy.before`) resp.
    `container.work_dir` (for `copy.after`).
+
+_Note:_ When errors happen during `run.setup` or `copy.setup`, we can not recover graciously.
+Therefore, we immediately kill the container so `_.setup` will be retried before the next command.
    
 
 ### Examples
