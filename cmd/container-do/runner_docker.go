@@ -271,7 +271,7 @@ func (d DockerRunner) CopyFilesTo(c *container, thing []thingToCopy) error {
         zap.L().Sugar().Debugf("Files to copy: %s", files)
 
         if len(files) == 0 {
-            return nil
+            continue
         } else if len(files) > 1 || strings.HasSuffix(filesAndTarget.Target, "/") {
             // Copying files into a directory --> make sure it exists!
             zap.L().Sugar().Debugf("Creating target directory: %s", filesAndTarget.Target)
@@ -324,7 +324,7 @@ func (d DockerRunner) CopyFilesFrom(c *container, thing []thingToCopy) error {
         zap.L().Sugar().Debugf("Files to copy: %s", files)
 
         if len(files) == 0 {
-            return nil
+            continue
         } else if len(files) > 1 || strings.HasSuffix(filesAndTarget.Target, "/") {
             // Copying files into a directory --> make sure it exists!
             zap.L().Sugar().Debugf("Creating target directory: %s", filesAndTarget.Target)
