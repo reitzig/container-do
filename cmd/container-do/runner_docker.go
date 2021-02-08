@@ -134,6 +134,16 @@ func (d DockerRunner) CreateContainer(c *container) error {
 
     if c.WorkDir != "" {
         args = append(args, "--workdir", c.WorkDir)
+    } else {
+        out, err := d.runDockerCommand("inspect", "--format={{.ContainerConfig.WorkingDir}}", c.Image)
+        if err != nil {
+            return err
+        }
+        if wd := strings.TrimSpace(string(out)); wd == "" {
+            c.WorkDir = "/"
+        } else {
+            c.WorkDir = wd
+        }
     }
 
     if c.Mounts == nil {
@@ -146,25 +156,12 @@ func (d DockerRunner) CreateContainer(c *container) error {
             return err
         }
 
-        containerWorkDir := c.WorkDir
-        if c.WorkDir == "" {
-            out, err := d.runDockerCommand("inspect", "--format={{.ContainerConfig.WorkingDir}}", c.Image)
-            if err != nil {
-                return err
-            }
-            if wd := strings.TrimSpace(string(out)); wd == "" {
-                containerWorkDir = "/"
-            } else {
-                containerWorkDir = wd
-            }
-        }
-
-        if containerWorkDir == "/" {
+        if c.WorkDir == "/" {
             // Forbidden by Docker!
             zap.L().Sugar().Warn("Can not set up default bind-mount to container root; " +
                 "specify other working directory or declare valid mounts explicitly!")
         } else {
-            bindMount := fmt.Sprintf("%s:%s", hostWorkDir, containerWorkDir)
+            bindMount := fmt.Sprintf("%s:%s", hostWorkDir, c.WorkDir)
             zap.L().Sugar().Debugf("Using default bind-mount '%s'", bindMount)
             args = append(args, "--volume", bindMount)
         }
@@ -274,8 +271,7 @@ func (d DockerRunner) CopyFilesTo(c *container, thing []thingToCopy) error {
             continue
         } else if len(files) > 1 || strings.HasSuffix(filesAndTarget.Target, "/") {
             // Copying files into a directory --> make sure it exists!
-            zap.L().Sugar().Debugf("Creating target directory: %s", filesAndTarget.Target)
-            // TODO: c.WorkDir may not be set! --> issue #
+            zap.L().Sugar().Debugf("Creating target directory: %s/%s", c.WorkDir, filesAndTarget.Target)
             err := d.runDockerCommandAttached("exec", "-w", c.WorkDir, c.Name, "mkdir", "-p", filesAndTarget.Target)
             if err != nil {
                 return err
