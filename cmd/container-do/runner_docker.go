@@ -269,25 +269,36 @@ func (d DockerRunner) CopyFilesTo(c *container, thing []thingToCopy) error {
 
         if len(files) == 0 {
             continue
-        } else if len(files) > 1 || strings.HasSuffix(filesAndTarget.Target, "/") {
-            // Copying files into a directory --> make sure it exists!
-            zap.L().Sugar().Debugf("Creating target directory: %s/%s", c.WorkDir, filesAndTarget.Target)
-            err := d.runDockerCommandAttached("exec", "-w", c.WorkDir, c.Name, "mkdir", "-p", filesAndTarget.Target)
-            if err != nil {
-                return err
-            }
         }
 
         var target string
         if strings.HasPrefix(filesAndTarget.Target, "/") {
             // Absolute path given
-            target = fmt.Sprintf("%s:%s", c.Name, filesAndTarget.Target)
+            target = filesAndTarget.Target
         } else {
             // Relative path given; add working directory to get absolute path
-            target = fmt.Sprintf("%s:%s/%s", c.Name, c.WorkDir, filesAndTarget.Target)
+            target = fmt.Sprintf("%s/%s", c.WorkDir, filesAndTarget.Target)
         }
+
+        if len(files) > 1 || strings.HasSuffix(target, "/") {
+            // Copying files into a directory --> make sure it exists!
+            zap.L().Sugar().Debugf("Creating target directory: %s", target)
+            err := d.runDockerCommandAttached("exec", c.Name, "mkdir", "-p", target)
+            if err != nil {
+                return err
+            }
+        } else {
+            // Copying a single file or directory --> make sure its parent exists!
+            parentDir := filepath.Dir(target)
+            zap.L().Sugar().Debugf("Creating target directory: %s", parentDir)
+            err := d.runDockerCommandAttached("exec", c.Name, "mkdir", "-p", parentDir)
+            if err != nil {
+                return err
+            }
+        }
+
         for _, source := range files {
-            err := d.runDockerCommandAttached("cp", source, target)
+            err := d.runDockerCommandAttached("cp", source, fmt.Sprintf("%s:%s", c.Name, target))
             if err != nil {
                 return err
             }
@@ -325,6 +336,14 @@ func (d DockerRunner) CopyFilesFrom(c *container, thing []thingToCopy) error {
             // Copying files into a directory --> make sure it exists!
             zap.L().Sugar().Debugf("Creating target directory: %s", filesAndTarget.Target)
             err := os.MkdirAll(filesAndTarget.Target, os.ModeDir|os.FileMode(0775))
+            if err != nil {
+                return err
+            }
+        } else {
+            // Copying a single file or directory --> make sure its parent exists!
+            parentDir := filepath.Dir(filesAndTarget.Target)
+            zap.L().Sugar().Debugf("Creating target directory: %s", parentDir)
+            err := os.MkdirAll(parentDir, os.ModeDir|os.FileMode(0775))
             if err != nil {
                 return err
             }
