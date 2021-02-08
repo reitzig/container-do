@@ -38,8 +38,22 @@ After do |scenario|
   @env = {}
 
   Dir.chdir(@host_workdir) unless @host_workdir.nil?
+
   FileUtils.rm_rf(@temp_dir) unless @temp_dir.nil?
+  @project_name = nil
+  @temp_dir = nil
+  @project_dir = nil
+
   @containers.each do |c|
     _, _ = Open3.capture2e($docker, "rm", '-f', c)
   end unless @containers.nil?
+
+  # at_exit can't access "World", so we need to (ab)use a global variable:
+  $images = ($images || []).concat(@images) unless @images.nil?
+end
+
+at_exit do
+  $images.each do |i|
+    _, _ = Open3.capture2e($docker, "rmi", i)
+  end unless $images.nil?
 end

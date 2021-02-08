@@ -4,10 +4,15 @@ Feature: Copy file to and from container
 
     Background:
         Given docker is installed
+        And Docker image container-do-test-copy-workdir exists based on
+            """
+            FROM ubuntu
+            WORKDIR /work
+            """
         And   config file for project test-app
             """
             [container]
-            image = "ubuntu"
+            image = "container-do-test-copy-workdir"
             work_dir = "/work"
             mounts = []
             """
@@ -207,3 +212,18 @@ Feature: Copy file to and from container
             """
             Was there!
             """
+
+    Scenario: Copy files to relative path in container but non-root work_dir is not configured
+        Given   config file for project test-app
+            """
+            [container]
+            image = "container-do-test-copy-workdir"
+            mounts = []
+
+            [[copy.setup]]
+            files = ["spam_a"]
+            to = "some/dir/"
+            """
+        When container-do is called with `cat some/dir/spam_a`
+        Then the command exits with status 0
+        And  its output is "A"
