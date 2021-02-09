@@ -97,6 +97,23 @@ func (d DockerRunner) DetermineOsFlavor(c *container) error {
     return nil
 }
 
+// Run this before any command that needs `c.WorkDir` set.
+func (d DockerRunner) DetermineWorkDir(c *container) error {
+    if c.WorkDir == "" {
+        out, err := d.runDockerCommand("inspect", "--format={{.ContainerConfig.WorkingDir}}", c.Image)
+        if err != nil {
+            return err
+        }
+        if wd := strings.TrimSpace(string(out)); wd == "" {
+            c.WorkDir = "/"
+        } else {
+            c.WorkDir = wd
+        }
+    }
+
+    return nil
+}
+
 func (d DockerRunner) DoesContainerExist(c *container) (bool, error) {
     out, err := d.runDockerCommand("ps", "--all", "--format", "{{.Names}}")
     if err != nil {
@@ -135,14 +152,9 @@ func (d DockerRunner) CreateContainer(c *container) error {
     if c.WorkDir != "" {
         args = append(args, "--workdir", c.WorkDir)
     } else {
-        out, err := d.runDockerCommand("inspect", "--format={{.ContainerConfig.WorkingDir}}", c.Image)
+        err := d.DetermineWorkDir(c)
         if err != nil {
             return err
-        }
-        if wd := strings.TrimSpace(string(out)); wd == "" {
-            c.WorkDir = "/"
-        } else {
-            c.WorkDir = wd
         }
     }
 
@@ -277,6 +289,10 @@ func (d DockerRunner) CopyFilesTo(c *container, thing []thingToCopy) error {
             target = filesAndTarget.Target
         } else {
             // Relative path given; add working directory to get absolute path
+            err := d.DetermineWorkDir(c)
+            if err != nil {
+                return err
+            }
             target = fmt.Sprintf("%s/%s", c.WorkDir, filesAndTarget.Target)
         }
 
@@ -310,6 +326,11 @@ func (d DockerRunner) CopyFilesTo(c *container, thing []thingToCopy) error {
 
 func (d DockerRunner) CopyFilesFrom(c *container, thing []thingToCopy) error {
     for _, filesAndTarget := range thing {
+        err := d.DetermineWorkDir(c)
+        if err != nil {
+            return err
+        }
+
         zap.L().Sugar().Debugf("Will copy '%s' to '%s'", filesAndTarget.Files, filesAndTarget.Target)
         // `docker cp` doesn't expand globs, so we have to do it ourselves.
         // We want the result to be equivalent to filepath.Glob above, so drop missing files as well.

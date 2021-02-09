@@ -220,10 +220,16 @@ Feature: Copy file to and from container
             image = "container-do-test-copy-workdir"
             mounts = []
 
-            [[copy.setup]]
+            [[copy.before]]
             files = ["spam_a"]
             to = "some/dir/"
+
+            [run.after]
+            commands = ["echo 'B' >> some/dir/spam_a"]
             """
+        When container-do is called with `cat some/dir/spam_a`
+        Then the command exits with status 0
+        And  its output is "A"
         When container-do is called with `cat some/dir/spam_a`
         Then the command exits with status 0
         And  its output is "A"
