@@ -100,7 +100,7 @@ func (d DockerRunner) DetermineOsFlavor(c *container) error {
 // Run this before any command that needs `c.WorkDir` set.
 func (d DockerRunner) DetermineWorkDir(c *container) error {
     if c.WorkDir == "" {
-        out, err := d.runDockerCommand("inspect", "--format={{.ContainerConfig.WorkingDir}}", c.Image)
+        out, err := d.runDockerCommand("inspect", "--format={{.Config.WorkingDir}}", c.Image)
         if err != nil {
             return err
         }
@@ -392,6 +392,7 @@ func (d DockerRunner) ExecuteCommand(c *container, commandAndParameters []string
     // Make sure container isn't killed while our command is running:
     _ = d.setKeepAliveToken(c, keepAliveIndefinitely)
 
+    // NB: If c.WorkDir is empty, docker will accept -w without value and use the container working directory -- correct!
     args := append([]string{"exec", "-i", "-w", c.WorkDir, c.Name}, commandAndParameters...)
     cmdErr := d.runDockerCommandAttached(args...)
 

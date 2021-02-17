@@ -60,3 +60,31 @@ Given(/^Docker image ([a-zA-Z0-0_-]+) exists based on$/) do |image_name, dockerf
     @images = (@images || []).concat([image_name])
   end
 end
+
+Given(/^Kaniko image ([a-zA-Z0-0_-]+) exists based on$/) do |image_name, dockerfile|
+  File.write("Dockerfile", dockerfile)
+
+  out, status = Open3.capture2e($docker, 'run', '--rm',
+    '-v', "#{Dir.pwd}:/workspace",
+    'gcr.io/kaniko-project/executor:latest',
+    '--cleanup', '--no-push',
+    '--dockerfile', '/workspace/Dockerfile',
+    '--tarPath', "/workspace/#{image_name}.tar",
+    '--destination', "#{image_name}:latest",
+    '--context', 'dir:///workspace/')
+  unless status.success?
+    log(out)
+    raise "Could not build image"
+  else
+    log("Built image #{Dir.pwd}/#{image_name}.tar")
+  end
+
+  out, status = Open3.capture2e($docker, 'load', '--input', "#{image_name}.tar")
+  unless status.success?
+      log(out)
+      raise "Could not load image"
+    else
+      log("Loaded image #{image_name}")
+      @images = (@images || []).concat([image_name])
+    end
+end
