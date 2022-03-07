@@ -47,6 +47,6 @@ Feature: Corner Cases
             """
         When container-do is called with `pwd`
         Then no container was started
-        And the command exits with status 77
+        And the command exits with status 1
         And its error output contains "Unable to find image"
         And its error output contains "funky-foo"

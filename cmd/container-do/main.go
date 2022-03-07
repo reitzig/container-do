@@ -119,8 +119,13 @@ func main() {
         }
         os.Exit(0)
     } else if !containerExists {
-        // TODO: If we don't already have the image, we might block here for a while without input
-        //       Pull explicitly and attach?
+        imageExists, err := runner.DoesImageExist(&config.Container)
+        handle(err)
+
+        if !imageExists {
+            handle(UsageError{Message: fmt.Sprintf("Unable to find image '%s' locally", config.Container.Image)})
+        }
+
         err = runner.CreateContainer(&config.Container)
         handle(err)
         err = runner.RestartContainer(&config.Container)
