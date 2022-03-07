@@ -47,7 +47,8 @@ Feature: Limited User Interface
         And   no container was started
 
     Scenario: Regular Logging
-        Given   config file for project test-app
+        Given   image ubuntu exists
+        And     config file for project test-app
             """
             [container]
             image = "ubuntu"
@@ -58,7 +59,8 @@ Feature: Limited User Interface
         Then its error output is ""
 
     Scenario: Debug Logging
-        Given config file for project test-app
+        Given   image ubuntu exists
+        And     config file for project test-app
             """
             [container]
             image = "ubuntu"
@@ -79,7 +81,8 @@ Feature: Limited User Interface
         And  no container was started
 
     Scenario: Kill running container
-        Given config file for project test-app
+        Given   image ubuntu exists
+        And     config file for project test-app
             """
             [container]
             image = "ubuntu"
@@ -92,7 +95,8 @@ Feature: Limited User Interface
 
     @slow @timing
     Scenario: Cancel command
-        Given config file for project test-app
+        Given   image ubuntu exists
+        And     config file for project test-app
             """
             [container]
             image = "ubuntu"

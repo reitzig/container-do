@@ -5,6 +5,7 @@ Feature: Container Setup & Command pre-/post-processing
 
     Background:
         Given docker is installed
+        And   image ubuntu exists
         And   config file for project test-app
             """
             [container]
