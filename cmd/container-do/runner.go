@@ -16,6 +16,7 @@ type runnerExec interface {
 
     DetermineOsFlavor(c *container) error
 
+    DoesImageExist(c *container) (bool, error)
     DoesContainerExist(c *container) (bool, error)
     IsContainerRunning(c *container) (bool, error)
     CreateContainer(c *container) error

@@ -114,6 +114,20 @@ func (d DockerRunner) DetermineWorkDir(c *container) error {
     return nil
 }
 
+func (d DockerRunner) DoesImageExist(c *container) (bool, error) {
+    out, err := d.runDockerCommand("inspect", "--type", "image", "--format", "{{.Id}}", c.Image)
+
+    if err != nil {
+        if strings.Contains(string(out), "No such image:") {
+            return false, nil
+        } else {
+            return false, err
+        }
+    } else {
+        return true, nil
+    }
+}
+
 func (d DockerRunner) DoesContainerExist(c *container) (bool, error) {
     out, err := d.runDockerCommand("ps", "--all", "--format", "{{.Names}}")
     if err != nil {
