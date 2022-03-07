@@ -37,3 +37,16 @@ Feature: Corner Cases
         Then a container is started with name test-app-do
         And  the command exits with status 0
         And  its output is "/work"
+
+    # Reproduce issue #21
+    Scenario: Image missing
+        Given config file for project test-app
+            """
+            [container]
+            image = "funky-foo"
+            """
+        When container-do is called with `pwd`
+        Then no container was started
+        And the command exits with status 77
+        And its error output contains "Unable to find image"
+        And its error output contains "funky-foo"
