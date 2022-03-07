@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and 
 this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.4] - 2022-03-08
+
+### Fixed
+
+ - Better handling of missing image (issue #21)
+
+### Changed
+
+ - Bump to Go 1.17
+ - All kinds of dependency updates -- thanks, Dependabot! 🧡
 
 ## [1.2.3] - 2021-02-17
 

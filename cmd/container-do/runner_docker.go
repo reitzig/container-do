@@ -22,11 +22,11 @@ func (d DockerRunner) runDockerCommand(commandAndArguments ...string) ([]byte, e
 
     if err != nil {
         switch err.(type) {
-            case *exec.ExitError:
-                exitCode := err.(*exec.ExitError).ExitCode()
-                zap.L().Sugar().Debugf("Docker command quit with status %d", exitCode)
-            default:
-                zap.L().Sugar().Debugf("Error running command: %s", err.Error())
+        case *exec.ExitError:
+            exitCode := err.(*exec.ExitError).ExitCode()
+            zap.L().Sugar().Debugf("Docker command quit with status %d", exitCode)
+        default:
+            zap.L().Sugar().Debugf("Error running command: %s", err.Error())
         }
     }
     if len(out) > 0 {
