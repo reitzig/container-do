@@ -53,7 +53,7 @@ func handle(err error) {
     }
 }
 
-func handleSetupError(err error, onExitError func()error) {
+func handleSetupError(err error, onExitError func() error) {
     if _, ok := err.(*exec.ExitError); ok {
         zap.L().Info("Container setup failed; will not be able recover, so killing it.")
         killErr := onExitError()
@@ -89,20 +89,20 @@ func main() {
 
     requestedContainerKill := false
     switch os.Args[1] {
-        case "--help":
-            fmt.Printf(usageMessage, Version, OsArch, Build, doFile, doFile, doFile)
-            os.Exit(0)
-        case "--init":
-            if fileExists(doFile) {
-                handle(UsageError{Message: fmt.Sprintf("Config file '%s' already exists.", doFile)})
-            } else {
-                handle(ioutil.WriteFile(doFile, []byte(strings.TrimSpace(ConfigFileTemplate)), 0o644))
-                zap.L().Sugar().Infof("Created new %s from template.", doFile)
-            }
-            os.Exit(0)
-        case "--kill":
-            // Need to parse config before we can act on this!
-            requestedContainerKill = true
+    case "--help":
+        fmt.Printf(usageMessage, Version, OsArch, Build, doFile, doFile, doFile)
+        os.Exit(0)
+    case "--init":
+        if fileExists(doFile) {
+            handle(UsageError{Message: fmt.Sprintf("Config file '%s' already exists.", doFile)})
+        } else {
+            handle(ioutil.WriteFile(doFile, []byte(strings.TrimSpace(ConfigFileTemplate)), 0o644))
+            zap.L().Sugar().Infof("Created new %s from template.", doFile)
+        }
+        os.Exit(0)
+    case "--kill":
+        // Need to parse config before we can act on this!
+        requestedContainerKill = true
     }
 
     config, err := parseConfig(doFile)
