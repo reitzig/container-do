@@ -48,7 +48,22 @@ Given(/^environment variable ([A-Z_]+) is set to "([^"]+)"$/) do |key,value|
   @env[key] = value
 end
 
-Given(/^Docker image ([a-zA-Z0-0_-]+) exists based on$/) do |image_name, dockerfile|
+And(/^image (.*) exists$/) do |image_name|
+  # Do we _need_ to pull (and clean up afterwards)?
+  out, status = Open3.capture2e($docker, "inspect", "--type", "image", image_name)
+  next if status.success?
+
+  out, status = Open3.capture2e($docker, "pull", image_name)
+  unless status.success?
+    log(out)
+    raise "Could not pull image"
+  else
+    log("Pulled image #{image_name}")
+    @images = (@images || []).concat([image_name])
+  end
+end
+
+Given(/^Docker image ([a-zA-Z0-9_-]+) exists based on$/) do |image_name, dockerfile|
   File.write("Dockerfile", dockerfile)
 
   out, status = Open3.capture2e($docker, "build", '-t', image_name, '.')
@@ -61,7 +76,7 @@ Given(/^Docker image ([a-zA-Z0-0_-]+) exists based on$/) do |image_name, dockerf
   end
 end
 
-Given(/^Kaniko image ([a-zA-Z0-0_-]+) exists based on$/) do |image_name, dockerfile|
+Given(/^Kaniko image ([a-zA-Z0-9_-]+) exists based on$/) do |image_name, dockerfile|
   File.write("Dockerfile", dockerfile)
 
   out, status = Open3.capture2e($docker, 'run', '--rm',

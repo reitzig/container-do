@@ -5,6 +5,7 @@ Feature: Support Many Linux Flavors
 
     Scenario Outline:
         Given docker is installed
+        And   image <image> exists
         And   config file for project test-app
             """
             [container]

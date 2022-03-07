@@ -204,8 +204,8 @@ Then(/^file ([^\s]+) is a commented valid config file$/) do |config_file|
   # Now, pretend to run a command
   output, status = Open3.capture2e(@env, "#{@host_workdir}/#{$container_do}", "cat", "/neverthere")
   expect(status.success?).to be(false)
-  expect(status.exitstatus).to be > 1 # Both ConfigError and "command '/neverthere' not found" would yield 1
-  expect(output).to match("Unable to find image") | match("docker: invalid reference format")
+  expect(status.exitstatus).to be == 1
+  expect(output).to match("Unable to find image") | match("invalid reference format") # as opposed to a config error
 end
 
 And(/^no container was started$/) do
