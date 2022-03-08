@@ -13,6 +13,8 @@ In particular,
  - persist and share specific setups, and 
  - minimize the blast radius of potential mishaps.
 
+A more eloquent reasoning for using containers as development environment can be found in the documentation of [kudulab/dojo](https://github.com/kudulab/dojo#why-was-dojo-created-dojo-benefits).
+
 ### Premise
 
  1. You have a "project directory", 
@@ -212,6 +214,11 @@ Explore some use cases:
  
    That would mean higher maintenance debt (security patches etc.) and
    put the duty of ensuring compatibility with user systems on us.
+
+## Other Tools
+
+ - [kudulab/dojo](https://github.com/kudulab/dojo) -- Similar vision. Requires custom images but handles more complex setups.
+ - [batect/batect](https://github.com/batect/batect) -- More of a build tool than an environment specification.
 
 
 ## Acknowledgements
