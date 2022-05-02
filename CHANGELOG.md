@@ -10,7 +10,7 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Housekeeping
 
-- Bum to Go 1.18
+- Bump to Go 1.18
 - Update dependencies -- thanks, Dependabot! 🧡
 
 

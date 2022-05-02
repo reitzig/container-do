@@ -2,6 +2,7 @@
 [![release](https://img.shields.io/github/release/reitzig/container-do.svg)](https://github.com/reitzig/container-do/releases/latest)
 [![GitHub release date](https://img.shields.io/github/release-date/reitzig/container-do.svg)](https://github.com/reitzig/container-do/releases)
 [![Test](https://github.com/reitzig/container-do/workflows/Tests/badge.svg?branch=master&event=push)](https://github.com/reitzig/container-do/actions?query=workflow%3ATests+branch%3Amaster+event%3Apush++)
+[![CodeQL](https://github.com/reitzig/container-do/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/reitzig/container-do/actions/workflows/codeql-analysis.yml)
 
 # container-do
 
