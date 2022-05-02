@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [1.2.6] - 2022-05-02
+
+### Housekeeping
+
+- Bump to Go 1.18 -- for real this time! (Sorry. 🙏)
+
+
 ## [1.2.5] - 2022-05-02
 
 ### Housekeeping
