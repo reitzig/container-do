@@ -58,7 +58,7 @@ jobs:
           gem install bundler
           bundle install
 
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v3
         with:
           name: "container-do-${{ matrix.os }}"
 
@@ -94,7 +94,7 @@ jobs:
           gem install bundler
           bundle install
 
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v3
         with:
           name: "container-do-${{ matrix.os }}"
 
