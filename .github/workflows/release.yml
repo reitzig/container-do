@@ -47,7 +47,7 @@ jobs:
           GOOS: ${{ matrix.target-os }}
           GOARCH: ${{ matrix.target-arch }}
 
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v3
         with:
           name: "Build Archives"
           path: 'container-do_*'
