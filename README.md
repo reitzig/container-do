@@ -13,7 +13,9 @@ In particular,
  - persist and share specific setups, and 
  - minimize the blast radius of potential mishaps.
 
-A more eloquent reasoning for using containers as development environment can be found in the documentation of [kudulab/dojo](https://github.com/kudulab/dojo#why-was-dojo-created-dojo-benefits).
+A more eloquent reasoning for using containers as development environment 
+can be found in the documentation of 
+    [kudulab/dojo](https://github.com/kudulab/dojo#why-was-dojo-created-dojo-benefits).
 
 ### Premise
 
