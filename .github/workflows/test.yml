@@ -30,7 +30,7 @@ jobs:
       - name: Build Binary
         run: go build -o container-do ./...
 
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v3
         with:
           name: "container-do-${{ matrix.os }}"
           path: container-do
