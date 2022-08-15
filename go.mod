@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	github.com/pelletier/go-toml v1.9.5
-	go.uber.org/zap v1.21.0
+	go.uber.org/zap v1.22.0
 )
 
 require (
