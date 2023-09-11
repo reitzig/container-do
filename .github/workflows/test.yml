@@ -18,7 +18,7 @@ jobs:
           #- 'windows-latest'
           #- 'macos-latest' # Nope: https://github.community/t/why-is-docker-not-installed-on-macos/17017/6
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - uses: actions/setup-go@v4
         with:
@@ -47,7 +47,7 @@ jobs:
     env:
       CUCUMBER_PUBLISH_QUIET: true
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - uses: ruby/setup-ruby@v1
         with:
@@ -83,7 +83,7 @@ jobs:
     env:
       CUCUMBER_PUBLISH_QUIET: true
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - uses: ruby/setup-ruby@v1
         with:
