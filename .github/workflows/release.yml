@@ -17,7 +17,7 @@ jobs:
         target-arch:
           - 'amd64'
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Get the version
         id: get_version
@@ -56,7 +56,7 @@ jobs:
     runs-on: 'ubuntu-latest'
     needs: build
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - uses: actions/download-artifact@v3
         with:
