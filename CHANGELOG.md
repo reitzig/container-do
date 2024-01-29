@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [1.2.6] - 2024-01-29
+
+### Housekeeping
+
+- Bump to Go 1.21
+- Bump tests to Ruby 3.3
+- Update dependencies
+
+
 ## [1.2.6] - 2022-05-02
 
 ### Housekeeping
