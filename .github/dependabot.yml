@@ -1,14 +1,34 @@
 version: 2
 updates:
-  - package-ecosystem: "gomod" # See documentation for possible values
-    directory: "/" # Location of package manifests
+  - package-ecosystem: "gomod"
+    directory: "."
+    allow:
+      - dependency-type: "all"
     schedule:
       interval: "weekly"
+    groups:
+      dev-non-major:
+        dependency-type: development
+        update-types:
+          - patch
+          - minor
+      patch:
+        dependency-type: production
+        update-types:
+          - patch
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
   - package-ecosystem: "bundler"
-    directory: "/"
+    directory: "."
+    allow:
+      - dependency-type: "all"
     schedule:
       interval: "weekly"
+    groups:
+      test-non-major:
+        dependency-type: development
+        update-types:
+          - patch
+          - minor
