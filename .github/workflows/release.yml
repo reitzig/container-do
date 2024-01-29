@@ -6,7 +6,18 @@ on:
       - 'v*'
 
 jobs:
+  prepare:
+    runs-on: 'ubuntu-latest'
+    outputs:
+      version: ${{ steps.get_version.outputs.VERSION }}
+    steps:
+      - name: Get the version
+        id: get_version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+
   build:
+    needs: prepare
     runs-on: 'ubuntu-latest'
     strategy:
       matrix:
@@ -16,26 +27,22 @@ jobs:
           - 'windows'
         target-arch:
           - 'amd64'
+    env:
+      VERSION: "${{needs.prepare.outputs.version}}"
     steps:
       - uses: actions/checkout@v4
-
-      - name: Get the version
-        id: get_version
-        run: echo ::set-output name=VERSION::${GITHUB_REF#refs/tags/}
 
       - uses: jdx/mise-action@v2
 
       - run: |
-          version="${{ steps.get_version.outputs.VERSION }}"
-
-          version_flag="-X main.Version=${version}"
+          version_flag="-X main.Version=${VERSION}"
           os_arch_flag="-X main.OsArch=${GOOS}/${GOARCH}"
           build_flag="-X main.Build=$(date -Iminute)"
 
           go build -ldflags "-s -w ${version_flag} ${os_arch_flag} ${build_flag}" \
             -o container-do ./...
 
-          archive_name="container-do_${version}_${GOOS}-${GOARCH}"
+          archive_name="container-do_${VERSION}_${GOOS}-${GOARCH}"
           if [[ "${GOOS}" == "windows" ]]; then
               zip "${archive_name}.zip" container-do LICENSE README.md
           else
@@ -47,41 +54,40 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: "Build Archives"
+          name: "build-archives-${{ matrix.target-os }}-${{ matrix.target-arch }}"
           path: 'container-do_*'
 
   release:
+    needs:
+      - prepare
+      - build
     runs-on: 'ubuntu-latest'
-    needs: build
+    env:
+      VERSION: "${{needs.prepare.outputs.version}}"
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/download-artifact@v4
         with:
-          name: "Build Archives"
-
-      - name: Collect asset names
-        id: asset_names
-        run: echo ::set-output name=LIST::$(ls container-do_*.{tar.gz,zip})
+          pattern: "build-archives-*"
+          merge-multiple: true
 
       - name: Is pre-release?
         id: is_pre_release
         run: |
-          version="${GITHUB_REF#refs/tags/}"
-          if [[ "${version}" =~ -.*$ ]]; then
-            echo ::set-output name=IS_PRERELEASE::true
+          if [[ "${VERSION}" =~ -.*$ ]]; then
+            echo "IS_PRERELEASE=true" >> $GITHUB_OUTPUT
           else
-            echo ::set-output name=IS_PRERELEASE::false
+            echo "IS_PRERELEASE=false" >> $GITHUB_OUTPUT
           fi
 
       - name: Release
-        uses: docker://antonyurchenko/git-release:v3
+        uses: docker://antonyurchenko/git-release:v6
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DRAFT_RELEASE: "false"
           PRE_RELEASE: ${{ steps.is_pre_release.outputs.IS_PRERELEASE }}
           CHANGELOG_FILE: "CHANGELOG.md"
           ALLOW_EMPTY_CHANGELOG: "false"
-          ALLOW_TAG_PREFIX: "true"
         with:
-          args: "${{ steps.asset_names.outputs.LIST }}"
+          args: "container-do_${{needs.prepare.outputs.version}}_*"
