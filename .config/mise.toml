@@ -1,0 +1,6 @@
+[env]
+BUNDLE_APP_CONFIG = "{{- config_root -}}/bundle"
+
+[tools]
+go = '1.21'
+ruby = '3.3'
