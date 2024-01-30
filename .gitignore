@@ -15,7 +15,7 @@
 
 # Dependency directories (remove the comment below to include it)
 /vendor/
-/vendor_ruby/
+/vendor_bundle/
 
 # IDEA
 /.idea
