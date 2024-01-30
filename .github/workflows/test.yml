@@ -27,6 +27,8 @@ jobs:
 
       - name: Build Binary
         run: go build -o container-do ./...
+        env:
+          CGO_ENABLED: 0
 
       - uses: actions/upload-artifact@v4
         with:

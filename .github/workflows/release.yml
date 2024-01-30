@@ -15,7 +15,6 @@ jobs:
         id: get_version
         run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
 
-
   build:
     needs: prepare
     runs-on: 'ubuntu-latest'
@@ -51,6 +50,7 @@ jobs:
         env:
           GOOS: ${{ matrix.target-os }}
           GOARCH: ${{ matrix.target-arch }}
+          CGO_ENABLED: 0
 
       - uses: actions/upload-artifact@v4
         with:
