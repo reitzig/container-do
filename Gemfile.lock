@@ -26,7 +26,7 @@ GEM
       cucumber-messages (> 19, < 25)
     cucumber-messages (22.0.0)
     cucumber-tag-expressions (5.0.6)
-    diff-lcs (1.5.0)
+    diff-lcs (1.5.1)
     ffi (1.16.3)
     mini_mime (1.1.5)
     multi_test (1.1.0)
