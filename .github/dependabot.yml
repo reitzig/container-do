@@ -27,8 +27,14 @@ updates:
     schedule:
       interval: "weekly"
     groups:
-      test-non-major:
+      # TODO: Can't we merge the two groups?
+      test-non-major-dev:
         dependency-type: development
+        update-types:
+          - patch
+          - minor
+      test-non-major-prod:
+        dependency-type: production
         update-types:
           - patch
           - minor
