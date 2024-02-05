@@ -28,7 +28,7 @@ updates:
       interval: "weekly"
     groups:
       test-non-major:
-        dependency-type: development
+        dependency-type: all
         update-types:
           - patch
           - minor
