@@ -2,7 +2,7 @@ GEM
   remote: https://rubygems.org/
   specs:
     bigdecimal (3.1.8)
-    builder (3.2.4)
+    builder (3.3.0)
     cucumber (9.2.0)
       builder (~> 3.2)
       cucumber-ci-environment (> 9, < 11)
@@ -29,7 +29,7 @@ GEM
     cucumber-messages (22.0.0)
     cucumber-tag-expressions (6.1.0)
     diff-lcs (1.5.1)
-    ffi (1.16.3)
+    ffi (1.17.0-x86_64-linux-gnu)
     mini_mime (1.1.5)
     multi_test (1.1.0)
     rspec (3.13.0)
