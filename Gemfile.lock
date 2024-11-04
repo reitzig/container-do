@@ -27,7 +27,7 @@ GEM
     cucumber-html-formatter (21.7.0)
       cucumber-messages (> 19, < 27)
     cucumber-messages (22.0.0)
-    cucumber-tag-expressions (6.1.0)
+    cucumber-tag-expressions (6.1.1)
     diff-lcs (1.5.1)
     ffi (1.17.0-x86_64-linux-gnu)
     mini_mime (1.1.5)
